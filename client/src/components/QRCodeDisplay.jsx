@@ -1,4 +1,4 @@
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { Download, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 
@@ -14,31 +14,31 @@ export default function QRCodeDisplay({ eventSlug }) {
   };
 
   const downloadQR = () => {
-    const svg = document.getElementById('qr-code-svg');
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
+    const canvas = document.getElementById('qr-code-canvas');
 
-    canvas.width = 512;
-    canvas.height = 512;
+    // Create a new canvas with white background
+    const downloadCanvas = document.createElement('canvas');
+    const ctx = downloadCanvas.getContext('2d');
 
-    img.onload = () => {
-      ctx.fillStyle = 'white';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, 512, 512);
+    downloadCanvas.width = 512;
+    downloadCanvas.height = 512;
 
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `event-${eventSlug}-qr.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    };
+    // Fill white background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, 512, 512);
 
-    img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+    // Draw the QR code
+    ctx.drawImage(canvas, 0, 0, 512, 512);
+
+    // Download
+    downloadCanvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `event-${eventSlug}-qr.png`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
   };
 
   return (
@@ -46,14 +46,26 @@ export default function QRCodeDisplay({ eventSlug }) {
       <h3 className="mb-4 text-lg font-semibold">Share Event</h3>
 
       {/* QR Code */}
-      <div className="mb-4 flex justify-center rounded-lg bg-white p-6">
-        <QRCodeSVG
-          id="qr-code-svg"
-          value={eventUrl}
-          size={200}
-          level="H"
-          includeMargin={false}
-        />
+      <div className="mb-4 flex justify-center rounded-xl bg-white p-8">
+        <div style={{
+          borderRadius: '12px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+        }}>
+          <QRCodeCanvas
+            id="qr-code-canvas"
+            value={eventUrl}
+            size={220}
+            level="H"
+            includeMargin={true}
+            marginSize={2}
+            fgColor="#000000"
+            bgColor="#ffffff"
+            imageSettings={{
+              excavate: true,
+            }}
+          />
+        </div>
       </div>
 
       {/* Event URL */}
