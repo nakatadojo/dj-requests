@@ -33,6 +33,7 @@ const migrations = [
   'add_rate_limiting.sql',
   'add_cover_image.sql',
   'add_recurring_events.sql',
+  'add_social_links.sql',
 ];
 
 for (const migrationFile of migrations) {

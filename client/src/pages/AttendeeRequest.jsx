@@ -4,7 +4,7 @@ import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useSession } from '../hooks/useSession';
 import LoadingSpinner from '../components/LoadingSpinner';
-import VenmoButton from '../components/VenmoButton';
+import SocialLinks from '../components/SocialLinks';
 import SpotifySearch from '../components/SpotifySearch';
 import { Music, ThumbsUp, Clock, X, CheckCircle, Music2 } from 'lucide-react';
 
@@ -191,13 +191,6 @@ export default function AttendeeRequest() {
           )}
         </div>
 
-        {/* Venmo Button */}
-        {event.venmo_username && (
-          <div className="mb-6 flex justify-center">
-            <VenmoButton venmoUsername={event.venmo_username} />
-          </div>
-        )}
-
         {/* Request Form */}
         <form onSubmit={handleSubmit} className="mb-8 rounded-lg bg-zinc-900 border border-purple-900/30 p-6">
           <h2 className="mb-4 text-xl font-semibold text-white">Request a Song</h2>
@@ -284,6 +277,15 @@ export default function AttendeeRequest() {
             {submitting ? 'Submitting...' : selectedSong ? 'Submit Request' : 'Search for a song first'}
           </button>
         </form>
+
+        {/* Social Links */}
+        <SocialLinks
+          instagram_handle={event.instagram_handle}
+          twitter_handle={event.twitter_handle}
+          tiktok_handle={event.tiktok_handle}
+          website_url={event.website_url}
+          venmo_username={event.venmo_username}
+        />
 
         {/* Live Queue */}
         {event.queue_visible && (

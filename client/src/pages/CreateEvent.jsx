@@ -14,6 +14,10 @@ export default function CreateEvent() {
     requests_per_hour: 0,
     rate_limit_message: '',
     cover_image_url: '',
+    instagram_handle: '',
+    twitter_handle: '',
+    tiktok_handle: '',
+    website_url: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -41,6 +45,10 @@ export default function CreateEvent() {
         requests_per_hour: parseInt(formData.requests_per_hour) || 0,
         rate_limit_message: formData.rate_limit_message || null,
         cover_image_url: formData.cover_image_url || null,
+        instagram_handle: formData.instagram_handle || null,
+        twitter_handle: formData.twitter_handle || null,
+        tiktok_handle: formData.tiktok_handle || null,
+        website_url: formData.website_url || null,
       };
 
       const event = await eventsAPI.create(eventData);
@@ -192,6 +200,87 @@ export default function CreateEvent() {
               placeholder="https://example.com/image.jpg"
             />
             <p className="mt-2 text-xs text-gray-400">Mobile-friendly cover image for the event page</p>
+          </div>
+
+          {/* Social Links */}
+          <div className="mb-6 rounded-lg bg-gray-700/50 border border-gray-600 p-4">
+            <h3 className="mb-3 text-sm font-semibold text-blue-400">Social Links (optional)</h3>
+            <p className="mb-4 text-xs text-gray-400">Display your social media between the request form and queue</p>
+
+            <div className="space-y-3">
+              {/* Instagram */}
+              <div>
+                <label htmlFor="instagram_handle" className="mb-1 block text-xs font-medium text-gray-300">
+                  Instagram Handle
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                  <input
+                    type="text"
+                    id="instagram_handle"
+                    name="instagram_handle"
+                    value={formData.instagram_handle}
+                    onChange={handleChange}
+                    className="w-full rounded-lg bg-gray-700 px-4 py-2 pl-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="yourusername"
+                  />
+                </div>
+              </div>
+
+              {/* Twitter/X */}
+              <div>
+                <label htmlFor="twitter_handle" className="mb-1 block text-xs font-medium text-gray-300">
+                  Twitter/X Handle
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                  <input
+                    type="text"
+                    id="twitter_handle"
+                    name="twitter_handle"
+                    value={formData.twitter_handle}
+                    onChange={handleChange}
+                    className="w-full rounded-lg bg-gray-700 px-4 py-2 pl-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="yourusername"
+                  />
+                </div>
+              </div>
+
+              {/* TikTok */}
+              <div>
+                <label htmlFor="tiktok_handle" className="mb-1 block text-xs font-medium text-gray-300">
+                  TikTok Handle
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">@</span>
+                  <input
+                    type="text"
+                    id="tiktok_handle"
+                    name="tiktok_handle"
+                    value={formData.tiktok_handle}
+                    onChange={handleChange}
+                    className="w-full rounded-lg bg-gray-700 px-4 py-2 pl-8 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                    placeholder="yourusername"
+                  />
+                </div>
+              </div>
+
+              {/* Website */}
+              <div>
+                <label htmlFor="website_url" className="mb-1 block text-xs font-medium text-gray-300">
+                  Website URL
+                </label>
+                <input
+                  type="url"
+                  id="website_url"
+                  name="website_url"
+                  value={formData.website_url}
+                  onChange={handleChange}
+                  className="w-full rounded-lg bg-gray-700 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  placeholder="https://yourwebsite.com"
+                />
+              </div>
+            </div>
           </div>
 
           {/* Queue Visibility */}

@@ -37,7 +37,7 @@ router.get('/', authenticateDJ, (req, res, next) => {
  */
 router.post('/', authenticateDJ, (req, res, next) => {
   try {
-    const { name, date, is_recurring, genre_tags, venmo_username, queue_visible, requests_per_hour, rate_limit_message, cover_image_url } = req.body;
+    const { name, date, is_recurring, genre_tags, venmo_username, queue_visible, requests_per_hour, rate_limit_message, cover_image_url, instagram_handle, twitter_handle, tiktok_handle, website_url } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'Event name is required' });
@@ -53,8 +53,8 @@ router.post('/', authenticateDJ, (req, res, next) => {
     const genreTagsJson = genre_tags ? JSON.stringify(genre_tags) : null;
 
     db.prepare(`
-      INSERT INTO events (id, dj_id, slug, name, date, is_recurring, genre_tags, venmo_username, queue_visible, status, requests_per_hour, rate_limit_message, cover_image_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
+      INSERT INTO events (id, dj_id, slug, name, date, is_recurring, genre_tags, venmo_username, queue_visible, status, requests_per_hour, rate_limit_message, cover_image_url, instagram_handle, twitter_handle, tiktok_handle, website_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       req.djId,
@@ -67,7 +67,11 @@ router.post('/', authenticateDJ, (req, res, next) => {
       queue_visible !== false ? 1 : 0,
       requests_per_hour || 0,
       rate_limit_message || null,
-      cover_image_url || null
+      cover_image_url || null,
+      instagram_handle || null,
+      twitter_handle || null,
+      tiktok_handle || null,
+      website_url || null
     );
 
     const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
@@ -122,7 +126,7 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized to modify this event' });
     }
 
-    const { queue_visible, venmo_username, name, date, genre_tags, requests_per_hour, rate_limit_message, cover_image_url } = req.body;
+    const { queue_visible, venmo_username, name, date, genre_tags, requests_per_hour, rate_limit_message, cover_image_url, instagram_handle, twitter_handle, tiktok_handle, website_url } = req.body;
 
     // Build update query dynamically
     const updates = [];
@@ -159,6 +163,22 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
     if (cover_image_url !== undefined) {
       updates.push('cover_image_url = ?');
       values.push(cover_image_url || null);
+    }
+    if (instagram_handle !== undefined) {
+      updates.push('instagram_handle = ?');
+      values.push(instagram_handle || null);
+    }
+    if (twitter_handle !== undefined) {
+      updates.push('twitter_handle = ?');
+      values.push(twitter_handle || null);
+    }
+    if (tiktok_handle !== undefined) {
+      updates.push('tiktok_handle = ?');
+      values.push(tiktok_handle || null);
+    }
+    if (website_url !== undefined) {
+      updates.push('website_url = ?');
+      values.push(website_url || null);
     }
 
     if (updates.length === 0) {
