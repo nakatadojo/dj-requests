@@ -1,6 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 
-const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001/ws';
+// Auto-detect WebSocket URL based on current location
+const getWebSocketURL = () => {
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+
+  // In production, use wss:// for https and ws:// for http
+  if (import.meta.env.MODE === 'production') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}/ws`;
+  }
+
+  // Development fallback
+  return 'ws://localhost:3001/ws';
+};
+
+const WS_URL = getWebSocketURL();
 
 export function useWebSocket(eventSlug, onMessage) {
   const ws = useRef(null);
