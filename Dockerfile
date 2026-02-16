@@ -11,20 +11,30 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy all package files first
 COPY package*.json ./
+
+# Copy client and server package files
 COPY client/package*.json ./client/
 COPY server/package*.json ./server/
 
-# Install dependencies
-RUN npm install
-RUN cd client && npm install
+# Install root dependencies (without workspaces to avoid conflicts)
+RUN npm install --legacy-peer-deps
 
-# Copy application code
+# Install client dependencies
+WORKDIR /app/client
+RUN npm install --legacy-peer-deps
+
+# Go back to root and copy all application code
+WORKDIR /app
 COPY . .
 
 # Build the client
+WORKDIR /app/client
 RUN npm run build
+
+# Go back to root for running the app
+WORKDIR /app
 
 # Expose port
 EXPOSE 3001
