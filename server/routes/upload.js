@@ -10,18 +10,18 @@ const __dirname = dirname(__filename);
 
 const router = express.Router();
 
-// Use /app/data/uploads for persistent storage (same volume as database)
+// Use /data/uploads for persistent storage (Railway volume mounted at /data)
 // Falls back to local uploads directory for development
-// Check if /app/data exists (Railway volume) or use NODE_ENV
-const isProduction = existsSync('/app/data') || process.env.NODE_ENV === 'production';
+// Check if /data exists (Railway volume) or use NODE_ENV
+const isProduction = existsSync('/data') || process.env.NODE_ENV === 'production';
 const uploadsDir = isProduction
-  ? '/app/data/uploads/covers'
+  ? '/data/uploads/covers'
   : join(__dirname, '..', 'uploads', 'covers');
 
 console.log('Upload configuration:', {
   isProduction,
   uploadsDir,
-  dataExists: existsSync('/app/data'),
+  dataExists: existsSync('/data'),
   NODE_ENV: process.env.NODE_ENV
 });
 

@@ -43,10 +43,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files from persistent volume in production, local directory in dev
-// Check if /app/data exists (Railway volume) or use NODE_ENV
-const isProduction = existsSync('/app/data') || process.env.NODE_ENV === 'production';
+// Check if /data exists (Railway volume mounted at /data) or use NODE_ENV
+const isProduction = existsSync('/data') || process.env.NODE_ENV === 'production';
 const uploadsPath = isProduction
-  ? '/app/data/uploads'
+  ? '/data/uploads'
   : join(__dirname, 'uploads');
 
 console.log('Uploads path:', uploadsPath);
