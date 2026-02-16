@@ -38,7 +38,7 @@ RUN npm run build
 # Go back to root for running the app
 WORKDIR /app
 
-# Create uploads directory for persistent storage
+# Create uploads directory for local dev (production uses /app/data volume)
 RUN mkdir -p /app/server/uploads/covers
 
 # Expose port

@@ -10,8 +10,12 @@ const __dirname = dirname(__filename);
 
 const router = express.Router();
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = join(__dirname, '..', 'uploads', 'covers');
+// Use /app/data/uploads for persistent storage (same volume as database)
+// Falls back to local uploads directory for development
+const uploadsDir = process.env.RAILWAY_ENVIRONMENT
+  ? '/app/data/uploads/covers'
+  : join(__dirname, '..', 'uploads', 'covers');
+
 if (!existsSync(uploadsDir)) {
   mkdirSync(uploadsDir, { recursive: true });
 }

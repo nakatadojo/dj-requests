@@ -7,12 +7,6 @@
   "deploy": {
     "startCommand": "npm start",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10,
-    "volumeMounts": [
-      {
-        "mountPath": "/app/server/uploads",
-        "name": "uploads"
-      }
-    ]
+    "restartPolicyMaxRetries": 10
   }
 }
