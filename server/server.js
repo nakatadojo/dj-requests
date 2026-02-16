@@ -17,6 +17,7 @@ import blocklistRoutes from './routes/blocklist.js';
 import stripeRoutes from './routes/stripe.js';
 import spotifyRoutes from './routes/spotify.js';
 import analyticsRoutes from './routes/analytics.js';
+import uploadRoutes from './routes/upload.js';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -40,6 +41,9 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded files
+app.use('/uploads', express.static(join(__dirname, 'uploads')));
+
 // API Routes - MUST come before static file serving
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
@@ -50,6 +54,7 @@ app.use('/api/blocklist', blocklistRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/spotify', spotifyRoutes);
 app.use('/api/dj', analyticsRoutes); // Also mount at /api/dj for all-time rankings
+app.use('/api/upload', uploadRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

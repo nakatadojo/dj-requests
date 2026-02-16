@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { eventsAPI } from '../utils/api';
-import { ArrowLeft, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar, Tag, Upload, X } from 'lucide-react';
 
 export default function CreateEvent() {
   const [formData, setFormData] = useState({
@@ -21,6 +21,9 @@ export default function CreateEvent() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [coverImage, setCoverImage] = useState(null);
+  const [coverPreview, setCoverPreview] = useState('');
+  const [uploading, setUploading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -30,6 +33,12 @@ export default function CreateEvent() {
     setLoading(true);
 
     try {
+      // Upload cover image first if selected
+      let coverImageUrl = formData.cover_image_url;
+      if (coverImage) {
+        coverImageUrl = await uploadImage();
+      }
+
       // Parse genre tags (comma-separated)
       const genre_tags_array = formData.genre_tags
         ? formData.genre_tags.split(',').map(tag => tag.trim()).filter(Boolean)
@@ -44,7 +53,7 @@ export default function CreateEvent() {
         queue_visible: formData.queue_visible,
         requests_per_hour: parseInt(formData.requests_per_hour) || 0,
         rate_limit_message: formData.rate_limit_message || null,
-        cover_image_url: formData.cover_image_url || null,
+        cover_image_url: coverImageUrl || null,
         instagram_handle: formData.instagram_handle || null,
         twitter_handle: formData.twitter_handle || null,
         tiktok_handle: formData.tiktok_handle || null,
@@ -66,6 +75,81 @@ export default function CreateEvent() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value,
     }));
+  };
+
+  // Recommended dimensions: 800x400px (2:1 aspect ratio)
+  const RECOMMENDED_WIDTH = 800;
+  const RECOMMENDED_HEIGHT = 400;
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image must be less than 5MB');
+      return;
+    }
+
+    // Validate dimensions
+    const img = new Image();
+    img.onload = () => {
+      if (img.width !== RECOMMENDED_WIDTH || img.height !== RECOMMENDED_HEIGHT) {
+        setError(`Image must be exactly ${RECOMMENDED_WIDTH}x${RECOMMENDED_HEIGHT}px (2:1 ratio). Your image is ${img.width}x${img.height}px.`);
+        setCoverImage(null);
+        setCoverPreview('');
+        return;
+      }
+
+      // All validations passed
+      setCoverImage(file);
+      setCoverPreview(URL.createObjectURL(file));
+      setError('');
+    };
+    img.src = URL.createObjectURL(file);
+  };
+
+  const handleImageRemove = () => {
+    setCoverImage(null);
+    setCoverPreview('');
+    setFormData(prev => ({ ...prev, cover_image_url: '' }));
+  };
+
+  const uploadImage = async () => {
+    if (!coverImage) return null;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('cover', coverImage);
+
+      const token = localStorage.getItem('dj_token');
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/upload/cover`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload image');
+      }
+
+      const data = await response.json();
+      return data.url;
+    } catch (err) {
+      setError('Failed to upload cover image');
+      throw err;
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -185,21 +269,51 @@ export default function CreateEvent() {
             <p className="mt-2 text-xs text-gray-400">Enables tip button for attendees</p>
           </div>
 
-          {/* Cover Image URL */}
+          {/* Cover Image Upload */}
           <div className="mb-6">
-            <label htmlFor="cover_image_url" className="mb-2 block text-sm font-medium">
-              Cover Image URL (optional)
+            <label className="mb-2 block text-sm font-medium">
+              Cover Image (optional)
             </label>
-            <input
-              type="url"
-              id="cover_image_url"
-              name="cover_image_url"
-              value={formData.cover_image_url}
-              onChange={handleChange}
-              className="w-full rounded-lg bg-gray-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-venmo"
-              placeholder="https://example.com/image.jpg"
-            />
-            <p className="mt-2 text-xs text-gray-400">Mobile-friendly cover image for the event page</p>
+
+            {coverPreview ? (
+              <div className="relative">
+                <img
+                  src={coverPreview}
+                  alt="Cover preview"
+                  className="w-full rounded-lg object-cover"
+                  style={{ maxHeight: '200px' }}
+                />
+                <button
+                  type="button"
+                  onClick={handleImageRemove}
+                  className="absolute top-2 right-2 rounded-full bg-red-600 p-2 text-white hover:bg-red-700"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ) : (
+              <label
+                htmlFor="cover_upload"
+                className="flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-600 bg-gray-700/50 px-4 py-8 transition-colors hover:border-venmo hover:bg-gray-700"
+              >
+                <Upload className="mb-2 h-8 w-8 text-gray-400" />
+                <span className="mb-1 text-sm font-medium text-gray-300">Click to upload cover image</span>
+                <span className="text-xs text-gray-400">PNG, JPG, GIF, WebP up to 5MB</span>
+                <span className="mt-2 text-xs font-semibold text-venmo">
+                  Required: 800x400px (2:1 ratio)
+                </span>
+                <input
+                  type="file"
+                  id="cover_upload"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                />
+              </label>
+            )}
+            <p className="mt-2 text-xs text-gray-400">
+              Mobile-friendly cover image for the event page. Must be exactly 800x400 pixels.
+            </p>
           </div>
 
           {/* Social Links */}
