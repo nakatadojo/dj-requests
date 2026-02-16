@@ -62,7 +62,9 @@ export default function DJLiveView() {
   };
 
   const toggleEventStatus = async () => {
-    const newVisible = !event.visible;
+    // Convert to boolean in case it's 0/1 from database
+    const isCurrentlyVisible = Boolean(event.visible);
+    const newVisible = !isCurrentlyVisible;
     const action = newVisible ? 'activate' : 'deactivate';
 
     if (!confirm(`Are you sure you want to ${action} this event?`)) return;
@@ -72,6 +74,7 @@ export default function DJLiveView() {
       loadEvent();
     } catch (err) {
       console.error(err);
+      alert('Failed to update event status: ' + err.message);
     }
   };
 

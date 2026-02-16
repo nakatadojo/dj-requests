@@ -203,6 +203,8 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
       ...updatedEvent,
       genre_tags: updatedEvent.genre_tags ? JSON.parse(updatedEvent.genre_tags) : [],
       queue_visible: Boolean(updatedEvent.queue_visible),
+      is_recurring: Boolean(updatedEvent.is_recurring),
+      visible: Boolean(updatedEvent.visible),
     });
   } catch (error) {
     next(error);
