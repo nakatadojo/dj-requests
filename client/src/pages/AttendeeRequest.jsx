@@ -5,6 +5,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useSession } from '../hooks/useSession';
 import LoadingSpinner from '../components/LoadingSpinner';
 import SocialLinks from '../components/SocialLinks';
+import VenmoButton from '../components/VenmoButton';
 import SpotifySearch from '../components/SpotifySearch';
 import { Music, ThumbsUp, Clock, X, CheckCircle, Music2 } from 'lucide-react';
 
@@ -374,15 +375,20 @@ export default function AttendeeRequest() {
               <h3 className="mb-3 text-center text-2xl font-bold text-white">
                 Request Submitted!
               </h3>
-              <p className="mb-4 text-center text-gray-300">
+              <p className="mb-6 text-center text-gray-300">
                 Your song request has been sent to the DJ. Thanks for contributing to the vibe!
               </p>
 
-              {/* Tip reminder */}
+              {/* Venmo Button in Modal */}
               {event.venmo_username && (
-                <p className="mb-4 text-center text-sm text-gray-400">
-                  💡 Tip the DJ using the Venmo button below!
-                </p>
+                <div className="space-y-3">
+                  <p className="text-center text-sm text-gray-400">
+                    Want to support the DJ?
+                  </p>
+                  <div className="flex justify-center">
+                    <VenmoButton venmoUsername={event.venmo_username} />
+                  </div>
+                </div>
               )}
 
               {/* Timer indicator (optional visual feedback) */}
