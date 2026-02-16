@@ -1,11 +1,67 @@
-import { QRCodeCanvas } from 'qrcode.react';
 import { Download, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 export default function QRCodeDisplay({ eventSlug }) {
   const [copied, setCopied] = useState(false);
+  const [QRCodeStyling, setQRCodeStyling] = useState(null);
+  const qrRef = useRef(null);
+  const qrCodeInstance = useRef(null);
 
   const eventUrl = `${window.location.origin}/event/${eventSlug}`;
+
+  // Dynamically import qr-code-styling (client-side only)
+  useEffect(() => {
+    const loadQRCodeStyling = async () => {
+      try {
+        const module = await import('qr-code-styling');
+        setQRCodeStyling(() => module.default);
+      } catch (error) {
+        console.error('Failed to load qr-code-styling:', error);
+      }
+    };
+
+    loadQRCodeStyling();
+  }, []);
+
+  // Initialize QR code with rounded dots
+  useEffect(() => {
+    if (!QRCodeStyling || !qrRef.current) return;
+
+    if (!qrCodeInstance.current) {
+      qrCodeInstance.current = new QRCodeStyling({
+        width: 240,
+        height: 240,
+        data: eventUrl,
+        margin: 10,
+        qrOptions: {
+          typeNumber: 0,
+          mode: 'Byte',
+          errorCorrectionLevel: 'H'
+        },
+        dotsOptions: {
+          color: '#000000',
+          type: 'rounded' // Rounded dots like your reference image!
+        },
+        cornersSquareOptions: {
+          color: '#000000',
+          type: 'extra-rounded' // Rounded corner squares
+        },
+        cornersDotOptions: {
+          color: '#000000',
+          type: 'dot' // Round corner dots
+        },
+        backgroundOptions: {
+          color: '#ffffff'
+        }
+      });
+
+      // Clear any existing content
+      qrRef.current.innerHTML = '';
+      qrCodeInstance.current.append(qrRef.current);
+    } else {
+      qrCodeInstance.current.update({ data: eventUrl });
+    }
+  }, [QRCodeStyling, eventUrl]);
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(eventUrl);
@@ -13,32 +69,14 @@ export default function QRCodeDisplay({ eventSlug }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadQR = () => {
-    const canvas = document.getElementById('qr-code-canvas');
-
-    // Create a new canvas with white background
-    const downloadCanvas = document.createElement('canvas');
-    const ctx = downloadCanvas.getContext('2d');
-
-    downloadCanvas.width = 512;
-    downloadCanvas.height = 512;
-
-    // Fill white background
-    ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, 512, 512);
-
-    // Draw the QR code
-    ctx.drawImage(canvas, 0, 0, 512, 512);
-
-    // Download
-    downloadCanvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `event-${eventSlug}-qr.png`;
-      a.click();
-      URL.revokeObjectURL(url);
-    });
+  const downloadQR = async () => {
+    if (qrCodeInstance.current) {
+      // Download using qr-code-styling's built-in method
+      qrCodeInstance.current.download({
+        name: `event-${eventSlug}-qr`,
+        extension: 'png'
+      });
+    }
   };
 
   return (
@@ -47,25 +85,14 @@ export default function QRCodeDisplay({ eventSlug }) {
 
       {/* QR Code */}
       <div className="mb-4 flex justify-center rounded-xl bg-white p-8">
-        <div style={{
-          borderRadius: '12px',
-          overflow: 'hidden',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        }}>
-          <QRCodeCanvas
-            id="qr-code-canvas"
-            value={eventUrl}
-            size={220}
-            level="H"
-            includeMargin={true}
-            marginSize={2}
-            fgColor="#000000"
-            bgColor="#ffffff"
-            imageSettings={{
-              excavate: true,
-            }}
-          />
-        </div>
+        <div
+          ref={qrRef}
+          style={{
+            borderRadius: '12px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          }}
+        />
       </div>
 
       {/* Event URL */}
