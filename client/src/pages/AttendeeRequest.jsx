@@ -151,17 +151,35 @@ export default function AttendeeRequest() {
       <div className="mx-auto max-w-2xl">
         {/* Header */}
         <div className="mb-6 text-center">
-          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-purple-600/20 p-4">
-            <Music className="h-12 w-12 text-purple-500" />
-          </div>
+          {event.cover_image_url ? (
+            <div className="mb-4">
+              <img
+                src={event.cover_image_url}
+                alt={event.name}
+                className="mx-auto w-full max-w-md rounded-lg object-cover shadow-lg"
+                style={{ maxHeight: '300px' }}
+              />
+            </div>
+          ) : (
+            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-purple-600/20 p-4">
+              <Music className="h-12 w-12 text-purple-500" />
+            </div>
+          )}
           <h1 className="text-3xl font-bold text-white">{event.name}</h1>
-          <p className="mt-2 text-gray-400">
-            {new Date(event.date).toLocaleDateString('en-US', {
-              month: 'long',
-              day: 'numeric',
-              year: 'numeric',
-            })}
-          </p>
+          {event.is_recurring ? (
+            <div className="mt-2 inline-flex items-center gap-2 rounded-full bg-green-500/20 px-4 py-1.5 border border-green-500/30">
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
+              <span className="text-sm font-semibold text-green-400">Live Now</span>
+            </div>
+          ) : (
+            <p className="mt-2 text-gray-400">
+              {new Date(event.date).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric',
+              })}
+            </p>
+          )}
           {event.genre_tags && event.genre_tags.length > 0 && (
             <div className="mt-3 flex flex-wrap justify-center gap-2">
               {event.genre_tags.map((tag, idx) => (

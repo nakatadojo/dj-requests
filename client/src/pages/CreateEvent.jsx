@@ -7,11 +7,13 @@ export default function CreateEvent() {
   const [formData, setFormData] = useState({
     name: '',
     date: '',
+    is_recurring: false,
     genre_tags: '',
     venmo_username: '',
     queue_visible: true,
     requests_per_hour: 0,
     rate_limit_message: '',
+    cover_image_url: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,12 +33,14 @@ export default function CreateEvent() {
 
       const eventData = {
         name: formData.name,
-        date: formData.date,
+        date: formData.is_recurring ? null : formData.date,
+        is_recurring: formData.is_recurring,
         genre_tags: genre_tags_array,
         venmo_username: formData.venmo_username || null,
         queue_visible: formData.queue_visible,
         requests_per_hour: parseInt(formData.requests_per_hour) || 0,
         rate_limit_message: formData.rate_limit_message || null,
+        cover_image_url: formData.cover_image_url || null,
       };
 
       const event = await eventsAPI.create(eventData);
@@ -95,24 +99,43 @@ export default function CreateEvent() {
             />
           </div>
 
-          {/* Date */}
+          {/* Recurring Event Toggle */}
           <div className="mb-6">
-            <label htmlFor="date" className="mb-2 block text-sm font-medium">
-              Date *
-            </label>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+            <label className="flex items-center gap-3">
               <input
-                type="date"
-                id="date"
-                name="date"
-                value={formData.date}
+                type="checkbox"
+                name="is_recurring"
+                checked={formData.is_recurring}
                 onChange={handleChange}
-                className="w-full rounded-lg bg-gray-700 px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-venmo"
-                required
+                className="h-5 w-5 rounded bg-gray-700 text-venmo focus:ring-2 focus:ring-venmo"
               />
-            </div>
+              <span className="text-sm font-medium">Recurring Event (no specific date)</span>
+            </label>
+            <p className="ml-8 mt-1 text-xs text-gray-400">
+              For ongoing venues - toggle on/off when you're playing
+            </p>
           </div>
+
+          {/* Date - only show for non-recurring events */}
+          {!formData.is_recurring && (
+            <div className="mb-6">
+              <label htmlFor="date" className="mb-2 block text-sm font-medium">
+                Date *
+              </label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="date"
+                  id="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  className="w-full rounded-lg bg-gray-700 px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-venmo"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           {/* Genre Tags */}
           <div className="mb-6">
@@ -152,6 +175,23 @@ export default function CreateEvent() {
               />
             </div>
             <p className="mt-2 text-xs text-gray-400">Enables tip button for attendees</p>
+          </div>
+
+          {/* Cover Image URL */}
+          <div className="mb-6">
+            <label htmlFor="cover_image_url" className="mb-2 block text-sm font-medium">
+              Cover Image URL (optional)
+            </label>
+            <input
+              type="url"
+              id="cover_image_url"
+              name="cover_image_url"
+              value={formData.cover_image_url}
+              onChange={handleChange}
+              className="w-full rounded-lg bg-gray-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-venmo"
+              placeholder="https://example.com/image.jpg"
+            />
+            <p className="mt-2 text-xs text-gray-400">Mobile-friendly cover image for the event page</p>
           </div>
 
           {/* Queue Visibility */}

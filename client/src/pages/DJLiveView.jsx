@@ -4,7 +4,7 @@ import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp } from 'lucide-react';
 
 export default function DJLiveView() {
   const { slug } = useParams();
@@ -115,13 +115,22 @@ export default function DJLiveView() {
           <div className="lg:col-span-2">
             <div className="mb-4 flex items-center justify-between">
               <h1 className="text-2xl font-bold">{event.name}</h1>
-              <button
-                onClick={toggleVisibility}
-                className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 hover:bg-gray-700"
-              >
-                {event.queue_visible ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
-                {event.queue_visible ? 'Hide Queue' : 'Show Queue'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigate(`/dj/event/${slug}/rankings`)}
+                  className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 hover:bg-purple-700"
+                >
+                  <TrendingUp className="h-5 w-5" />
+                  Rankings
+                </button>
+                <button
+                  onClick={toggleVisibility}
+                  className="flex items-center gap-2 rounded-lg bg-gray-800 px-4 py-2 hover:bg-gray-700"
+                >
+                  {event.queue_visible ? <Eye className="h-5 w-5" /> : <EyeOff className="h-5 w-5" />}
+                  {event.queue_visible ? 'Hide Queue' : 'Show Queue'}
+                </button>
+              </div>
             </div>
 
             {/* Search */}

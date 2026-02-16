@@ -16,6 +16,7 @@ import requestsRoutes from './routes/requests.js';
 import blocklistRoutes from './routes/blocklist.js';
 import stripeRoutes from './routes/stripe.js';
 import spotifyRoutes from './routes/spotify.js';
+import analyticsRoutes from './routes/analytics.js';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -43,10 +44,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/events', requestsRoutes); // Mount requests under /api/events
+app.use('/api/events', analyticsRoutes); // Mount analytics under /api/events
 app.use('/api/requests', requestsRoutes); // Also keep /api/requests for upvote endpoint
 app.use('/api/blocklist', blocklistRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/spotify', spotifyRoutes);
+app.use('/api/dj', analyticsRoutes); // Also mount at /api/dj for all-time rankings
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

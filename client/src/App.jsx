@@ -11,6 +11,7 @@ import DJLiveView from './pages/DJLiveView';
 import AttendeeRequest from './pages/AttendeeRequest';
 import Analytics from './pages/Analytics';
 import BlockList from './pages/BlockList';
+import SongRankings from './pages/SongRankings';
 
 // Protected route wrapper for DJ routes
 function ProtectedRoute({ children }) {
@@ -71,6 +72,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <BlockList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dj/event/:slug/rankings"
+            element={
+              <ProtectedRoute>
+                <SongRankings />
               </ProtectedRoute>
             }
           />

@@ -22,6 +22,7 @@ router.get('/', authenticateDJ, (req, res, next) => {
       ...event,
       genre_tags: event.genre_tags ? JSON.parse(event.genre_tags) : [],
       queue_visible: Boolean(event.queue_visible),
+      is_recurring: Boolean(event.is_recurring),
     }));
 
     res.json(eventsWithParsedTags);
@@ -36,10 +37,15 @@ router.get('/', authenticateDJ, (req, res, next) => {
  */
 router.post('/', authenticateDJ, (req, res, next) => {
   try {
-    const { name, date, genre_tags, venmo_username, queue_visible, requests_per_hour, rate_limit_message } = req.body;
+    const { name, date, is_recurring, genre_tags, venmo_username, queue_visible, requests_per_hour, rate_limit_message, cover_image_url } = req.body;
 
-    if (!name || !date) {
-      return res.status(400).json({ error: 'Event name and date are required' });
+    if (!name) {
+      return res.status(400).json({ error: 'Event name is required' });
+    }
+
+    // For non-recurring events, date is required
+    if (!is_recurring && !date) {
+      return res.status(400).json({ error: 'Date is required for non-recurring events' });
     }
 
     const id = generateId();
@@ -47,19 +53,21 @@ router.post('/', authenticateDJ, (req, res, next) => {
     const genreTagsJson = genre_tags ? JSON.stringify(genre_tags) : null;
 
     db.prepare(`
-      INSERT INTO events (id, dj_id, slug, name, date, genre_tags, venmo_username, queue_visible, status, requests_per_hour, rate_limit_message)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
+      INSERT INTO events (id, dj_id, slug, name, date, is_recurring, genre_tags, venmo_username, queue_visible, status, requests_per_hour, rate_limit_message, cover_image_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)
     `).run(
       id,
       req.djId,
       slug,
       name,
-      date,
+      date || null,
+      is_recurring ? 1 : 0,
       genreTagsJson,
       venmo_username || null,
       queue_visible !== false ? 1 : 0,
       requests_per_hour || 0,
-      rate_limit_message || null
+      rate_limit_message || null,
+      cover_image_url || null
     );
 
     const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
@@ -68,6 +76,7 @@ router.post('/', authenticateDJ, (req, res, next) => {
       ...event,
       genre_tags: event.genre_tags ? JSON.parse(event.genre_tags) : [],
       queue_visible: Boolean(event.queue_visible),
+      is_recurring: Boolean(event.is_recurring),
     });
   } catch (error) {
     next(error);
@@ -90,6 +99,7 @@ router.get('/:slug', (req, res, next) => {
       ...event,
       genre_tags: event.genre_tags ? JSON.parse(event.genre_tags) : [],
       queue_visible: Boolean(event.queue_visible),
+      is_recurring: Boolean(event.is_recurring),
     });
   } catch (error) {
     next(error);
@@ -112,7 +122,7 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized to modify this event' });
     }
 
-    const { queue_visible, venmo_username, name, date, genre_tags, requests_per_hour, rate_limit_message } = req.body;
+    const { queue_visible, venmo_username, name, date, genre_tags, requests_per_hour, rate_limit_message, cover_image_url } = req.body;
 
     // Build update query dynamically
     const updates = [];
@@ -145,6 +155,10 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
     if (rate_limit_message !== undefined) {
       updates.push('rate_limit_message = ?');
       values.push(rate_limit_message || null);
+    }
+    if (cover_image_url !== undefined) {
+      updates.push('cover_image_url = ?');
+      values.push(cover_image_url || null);
     }
 
     if (updates.length === 0) {
