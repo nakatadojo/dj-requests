@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { existsSync } from 'fs';
 import bcrypt from 'bcrypt';
 
 // Initialize database (this runs schema)
@@ -42,9 +43,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded files from persistent volume in production, local directory in dev
-const uploadsPath = process.env.RAILWAY_ENVIRONMENT
+// Check if /app/data exists (Railway volume) or use NODE_ENV
+const isProduction = existsSync('/app/data') || process.env.NODE_ENV === 'production';
+const uploadsPath = isProduction
   ? '/app/data/uploads'
   : join(__dirname, 'uploads');
+
+console.log('Uploads path:', uploadsPath);
 app.use('/uploads', express.static(uploadsPath));
 
 // API Routes - MUST come before static file serving

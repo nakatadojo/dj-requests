@@ -62,13 +62,13 @@ export default function DJLiveView() {
   };
 
   const toggleEventStatus = async () => {
-    const newStatus = event.status === 'active' ? 'inactive' : 'active';
-    const action = newStatus === 'active' ? 'activate' : 'deactivate';
+    const newVisible = !event.visible;
+    const action = newVisible ? 'activate' : 'deactivate';
 
     if (!confirm(`Are you sure you want to ${action} this event?`)) return;
 
     try {
-      await eventsAPI.update(slug, { status: newStatus });
+      await eventsAPI.update(slug, { visible: newVisible });
       loadEvent();
     } catch (err) {
       console.error(err);
@@ -121,12 +121,12 @@ export default function DJLiveView() {
               <button
                 onClick={toggleEventStatus}
                 className={`rounded-lg px-4 py-2 font-semibold ${
-                  event.status === 'active'
+                  event.visible
                     ? 'bg-orange-600 hover:bg-orange-700'
                     : 'bg-green-600 hover:bg-green-700'
                 }`}
               >
-                {event.status === 'active' ? 'Deactivate' : 'Activate'}
+                {event.visible ? 'Deactivate' : 'Activate'}
               </button>
             )}
             <button

@@ -12,7 +12,9 @@ const router = express.Router();
 
 // Use /app/data/uploads for persistent storage (same volume as database)
 // Falls back to local uploads directory for development
-const uploadsDir = process.env.RAILWAY_ENVIRONMENT
+// Check if /app/data exists (Railway volume) or use NODE_ENV
+const isProduction = existsSync('/app/data') || process.env.NODE_ENV === 'production';
+const uploadsDir = isProduction
   ? '/app/data/uploads/covers'
   : join(__dirname, '..', 'uploads', 'covers');
 

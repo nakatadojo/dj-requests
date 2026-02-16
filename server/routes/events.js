@@ -131,7 +131,7 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized to modify this event' });
     }
 
-    const { queue_visible, status, venmo_username, name, date, genre_tags, requests_per_hour, rate_limit_message, cover_image_url, instagram_handle, twitter_handle, tiktok_handle, website_url } = req.body;
+    const { queue_visible, visible, venmo_username, name, date, genre_tags, requests_per_hour, rate_limit_message, cover_image_url, instagram_handle, twitter_handle, tiktok_handle, website_url } = req.body;
 
     // Build update query dynamically
     const updates = [];
@@ -141,9 +141,9 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
       updates.push('queue_visible = ?');
       values.push(queue_visible ? 1 : 0);
     }
-    if (status !== undefined) {
-      updates.push('status = ?');
-      values.push(status);
+    if (visible !== undefined) {
+      updates.push('visible = ?');
+      values.push(visible ? 1 : 0);
     }
     if (venmo_username !== undefined) {
       updates.push('venmo_username = ?');

@@ -146,8 +146,8 @@ export default function AttendeeRequest() {
     );
   }
 
-  // Check if event is inactive
-  if (event.status === 'inactive') {
+  // Check if event is not visible (deactivated)
+  if (event.visible === 0 || event.visible === false) {
     return (
       <div className="min-h-screen bg-black p-4">
         <div className="mx-auto max-w-2xl">
