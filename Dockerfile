@@ -42,4 +42,5 @@ WORKDIR /app
 EXPOSE 3001
 
 # Start server (DJ account creation happens automatically on startup)
+# Updated: 2026-02-15 - Integrated DJ creation into server.js
 CMD ["npm", "start"]
