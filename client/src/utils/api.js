@@ -49,8 +49,14 @@ export const eventsAPI = {
       body: JSON.stringify(eventData),
     }),
 
-  getBySlug: (slug) =>
-    fetch(`${API_BASE_URL}/events/${slug}`).then(r => r.json()),
+  getBySlug: async (slug) => {
+    const response = await fetch(`${API_BASE_URL}/events/${slug}`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || 'Event not found');
+    }
+    return response.json();
+  },
 
   update: (slug, updates) =>
     fetchWithAuth(`/events/${slug}`, {
@@ -69,22 +75,40 @@ export const eventsAPI = {
 
 // Requests API
 export const requestsAPI = {
-  getForEvent: (slug) =>
-    fetch(`${API_BASE_URL}/events/${slug}/requests`).then(r => r.json()),
+  getForEvent: async (slug) => {
+    const response = await fetch(`${API_BASE_URL}/events/${slug}/requests`);
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(error.error || 'Failed to load requests');
+    }
+    return response.json();
+  },
 
-  submit: (slug, requestData) =>
-    fetch(`${API_BASE_URL}/events/${slug}/requests`, {
+  submit: async (slug, requestData) => {
+    const response = await fetch(`${API_BASE_URL}/events/${slug}/requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestData),
-    }).then(r => r.json()),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to submit request');
+    }
+    return data;
+  },
 
-  upvote: (requestId, sessionId) =>
-    fetch(`${API_BASE_URL}/requests/${requestId}/upvote`, {
+  upvote: async (requestId, sessionId) => {
+    const response = await fetch(`${API_BASE_URL}/requests/${requestId}/upvote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ session_id: sessionId }),
-    }).then(r => r.json()),
+    });
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to upvote');
+    }
+    return data;
+  },
 
   updateStatus: (requestId, status) =>
     fetchWithAuth(`/requests/${requestId}`, {
