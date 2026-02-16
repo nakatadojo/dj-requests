@@ -52,6 +52,10 @@ router.post('/', authenticateDJ, (req, res, next) => {
     const slug = generateEventSlug(name);
     const genreTagsJson = genre_tags ? JSON.stringify(genre_tags) : null;
 
+    // For recurring events without a date, use a placeholder date (year 2099)
+    // Frontend will check is_recurring flag to display "Live Now" instead of date
+    const eventDate = date || (is_recurring ? '2099-01-01' : null);
+
     db.prepare(`
       INSERT INTO events (id, dj_id, slug, name, date, is_recurring, genre_tags, venmo_username, queue_visible, status, requests_per_hour, rate_limit_message, cover_image_url, instagram_handle, twitter_handle, tiktok_handle, website_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?, ?)
@@ -60,7 +64,7 @@ router.post('/', authenticateDJ, (req, res, next) => {
       req.djId,
       slug,
       name,
-      date || null,
+      eventDate,
       is_recurring ? 1 : 0,
       genreTagsJson,
       venmo_username || null,
