@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoadingSpinner from './components/LoadingSpinner';
 
 // Pages
+import LandingPage from './pages/LandingPage';
 import DJLogin from './pages/DJLogin';
 import DJDashboard from './pages/DJDashboard';
 import CreateEvent from './pages/CreateEvent';
@@ -28,7 +29,8 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<DJLogin />} />
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<DJLogin />} />
           <Route path="/event/:slug" element={<AttendeeRequest />} />
 
           {/* Protected DJ Routes */}
