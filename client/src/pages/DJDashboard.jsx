@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { eventsAPI } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Plus, Calendar, Clock, TrendingUp, LogOut, Settings } from 'lucide-react';
+import { Plus, Calendar, Clock, TrendingUp, LogOut, Settings, Trash2 } from 'lucide-react';
 
 export default function DJDashboard() {
   const [events, setEvents] = useState([]);
@@ -31,6 +31,21 @@ export default function DJDashboard() {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const handleDeleteEvent = async (slug, eventName, e) => {
+    e.stopPropagation();
+
+    if (!window.confirm(`Are you sure you want to delete "${eventName}"? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await eventsAPI.delete(slug);
+      loadEvents(); // Reload events list
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -139,18 +154,27 @@ export default function DJDashboard() {
                       minute: '2-digit',
                     })}
                   </span>
-                  {event.status === 'ended' && (
+                  <div className="flex items-center gap-3">
+                    {event.status === 'ended' && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/analytics/${event.slug}`);
+                        }}
+                        className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
+                      >
+                        <TrendingUp className="h-4 w-4" />
+                        Analytics
+                      </button>
+                    )}
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/analytics/${event.slug}`);
-                      }}
-                      className="flex items-center gap-1 text-purple-400 hover:text-purple-300"
+                      onClick={(e) => handleDeleteEvent(event.slug, event.name, e)}
+                      className="flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors"
+                      title="Delete event"
                     >
-                      <TrendingUp className="h-4 w-4" />
-                      Analytics
+                      <Trash2 className="h-4 w-4" />
                     </button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))}

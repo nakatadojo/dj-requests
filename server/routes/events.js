@@ -196,6 +196,31 @@ router.post('/:slug/end', authenticateDJ, (req, res, next) => {
 });
 
 /**
+ * DELETE /api/events/:slug
+ * Delete an event (DJ only)
+ */
+router.delete('/:slug', authenticateDJ, (req, res, next) => {
+  try {
+    const event = db.prepare('SELECT * FROM events WHERE slug = ?').get(req.params.slug);
+
+    if (!event) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    if (event.dj_id !== req.djId) {
+      return res.status(403).json({ error: 'Not authorized to delete this event' });
+    }
+
+    // Delete the event (CASCADE will delete related requests and blocklist entries)
+    db.prepare('DELETE FROM events WHERE slug = ?').run(req.params.slug);
+
+    res.json({ message: 'Event deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * GET /api/events/:slug/analytics
  * Get analytics for an ended event
  */

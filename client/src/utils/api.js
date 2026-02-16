@@ -69,6 +69,11 @@ export const eventsAPI = {
       method: 'POST',
     }),
 
+  delete: (slug) =>
+    fetchWithAuth(`/events/${slug}`, {
+      method: 'DELETE',
+    }),
+
   getAnalytics: (slug) =>
     fetchWithAuth(`/events/${slug}/analytics`),
 };
