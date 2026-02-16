@@ -61,6 +61,20 @@ export default function DJLiveView() {
     }
   };
 
+  const toggleEventStatus = async () => {
+    const newStatus = event.status === 'active' ? 'inactive' : 'active';
+    const action = newStatus === 'active' ? 'activate' : 'deactivate';
+
+    if (!confirm(`Are you sure you want to ${action} this event?`)) return;
+
+    try {
+      await eventsAPI.update(slug, { status: newStatus });
+      loadEvent();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const updateRequestStatus = async (requestId, status) => {
     try {
       await requestsAPI.updateStatus(requestId, status);
@@ -102,12 +116,26 @@ export default function DJLiveView() {
             <ArrowLeft className="h-5 w-5" />
             Back
           </button>
-          <button
-            onClick={endEvent}
-            className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-700"
-          >
-            End Event
-          </button>
+          <div className="flex gap-2">
+            {event.is_recurring && (
+              <button
+                onClick={toggleEventStatus}
+                className={`rounded-lg px-4 py-2 font-semibold ${
+                  event.status === 'active'
+                    ? 'bg-orange-600 hover:bg-orange-700'
+                    : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {event.status === 'active' ? 'Deactivate' : 'Activate'}
+              </button>
+            )}
+            <button
+              onClick={endEvent}
+              className="rounded-lg bg-red-600 px-4 py-2 font-semibold hover:bg-red-700"
+            >
+              End Event
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-3">

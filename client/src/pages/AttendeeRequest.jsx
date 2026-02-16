@@ -146,6 +146,24 @@ export default function AttendeeRequest() {
     );
   }
 
+  // Check if event is inactive
+  if (event.status === 'inactive') {
+    return (
+      <div className="min-h-screen bg-black p-4">
+        <div className="mx-auto max-w-2xl">
+          <div className="mt-20 text-center">
+            <div className="mb-4 inline-flex items-center justify-center rounded-full bg-gray-800 p-4">
+              <Music className="h-12 w-12 text-gray-600" />
+            </div>
+            <h1 className="mb-2 text-3xl font-bold text-white">{event.name}</h1>
+            <p className="text-lg text-gray-400">This event is currently inactive</p>
+            <p className="mt-2 text-sm text-gray-500">Check back later when the DJ is live!</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black p-4">
       <div className="mx-auto max-w-2xl">
