@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticateToken } from '../middleware/auth.js';
+import { authenticateDJ } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -63,7 +63,7 @@ router.post('/create-checkout-session', async (req, res) => {
  * POST /api/stripe/create-portal-session
  * Requires authentication
  */
-router.post('/create-portal-session', authenticateToken, async (req, res) => {
+router.post('/create-portal-session', authenticateDJ, async (req, res) => {
   if (!stripe) {
     return res.status(500).json({ error: 'Stripe is not configured' });
   }
