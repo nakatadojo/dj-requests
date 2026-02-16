@@ -18,8 +18,18 @@ const uploadsDir = isProduction
   ? '/app/data/uploads/covers'
   : join(__dirname, '..', 'uploads', 'covers');
 
+console.log('Upload configuration:', {
+  isProduction,
+  uploadsDir,
+  dataExists: existsSync('/app/data'),
+  NODE_ENV: process.env.NODE_ENV
+});
+
 if (!existsSync(uploadsDir)) {
+  console.log('Creating uploads directory:', uploadsDir);
   mkdirSync(uploadsDir, { recursive: true });
+} else {
+  console.log('Uploads directory already exists:', uploadsDir);
 }
 
 // Configure multer for file uploads
@@ -61,6 +71,12 @@ router.post('/cover', authenticateDJ, upload.single('cover'), (req, res, next) =
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
+    console.log('File uploaded successfully:', {
+      filename: req.file.filename,
+      path: req.file.path,
+      size: req.file.size
+    });
+
     // Return the URL where the file can be accessed
     const fileUrl = `/uploads/covers/${req.file.filename}`;
 
@@ -71,6 +87,7 @@ router.post('/cover', authenticateDJ, upload.single('cover'), (req, res, next) =
       mimetype: req.file.mimetype
     });
   } catch (error) {
+    console.error('Upload error:', error);
     next(error);
   }
 });
