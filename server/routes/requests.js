@@ -6,6 +6,18 @@ import { songMatches, matchesBlockPattern } from '../utils/fuzzyMatch.js';
 const router = express.Router();
 
 /**
+ * Get client IP address from request
+ * Handles proxies and Railway's forwarding
+ */
+function getClientIp(req) {
+  return req.headers['x-forwarded-for']?.split(',')[0].trim() ||
+         req.headers['x-real-ip'] ||
+         req.connection.remoteAddress ||
+         req.socket.remoteAddress ||
+         'unknown';
+}
+
+/**
  * GET /api/events/:slug/requests
  * Get all song requests for an event (public)
  */
@@ -44,14 +56,11 @@ router.get('/:slug/requests', (req, res, next) => {
  */
 router.post('/:slug/requests', (req, res, next) => {
   try {
-    const { song_name, artist, requester_name, session_id } = req.body;
+    const { song_name, artist, requester_name } = req.body;
+    const clientIp = getClientIp(req);
 
     if (!song_name || !artist) {
       return res.status(400).json({ error: 'Song name and artist are required' });
-    }
-
-    if (!session_id) {
-      return res.status(400).json({ error: 'Session ID is required' });
     }
 
     const event = db.prepare('SELECT * FROM events WHERE slug = ?').get(req.params.slug);
@@ -91,14 +100,14 @@ router.post('/:slug/requests', (req, res, next) => {
       // Auto-upvote the existing request
       const upvoters = JSON.parse(duplicate.upvoter_sessions);
 
-      if (upvoters.includes(session_id)) {
+      if (upvoters.includes(clientIp)) {
         return res.status(400).json({
           error: 'You have already upvoted this song',
           isDuplicate: true,
         });
       }
 
-      upvoters.push(session_id);
+      upvoters.push(clientIp);
       const newUpvotes = duplicate.upvotes + 1;
 
       db.prepare(`
@@ -130,7 +139,7 @@ router.post('/:slug/requests', (req, res, next) => {
       artist,
       requester_name || 'Anonymous',
       1, // Start with 1 upvote (from requester)
-      JSON.stringify([session_id]) // Initialize with requester's session
+      JSON.stringify([clientIp]) // Initialize with requester's IP
     );
 
     const newRequest = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(id);
@@ -150,11 +159,7 @@ router.post('/:slug/requests', (req, res, next) => {
  */
 router.post('/:id/upvote', (req, res, next) => {
   try {
-    const { session_id } = req.body;
-
-    if (!session_id) {
-      return res.status(400).json({ error: 'Session ID is required' });
-    }
+    const clientIp = getClientIp(req);
 
     const request = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
 
@@ -164,11 +169,12 @@ router.post('/:id/upvote', (req, res, next) => {
 
     const upvoters = JSON.parse(request.upvoter_sessions);
 
-    if (upvoters.includes(session_id)) {
+    // Check if this IP has already upvoted
+    if (upvoters.includes(clientIp)) {
       return res.status(400).json({ error: 'You have already upvoted this song' });
     }
 
-    upvoters.push(session_id);
+    upvoters.push(clientIp);
     const newUpvotes = request.upvotes + 1;
 
     db.prepare(`

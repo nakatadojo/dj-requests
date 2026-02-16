@@ -102,11 +102,11 @@ export const requestsAPI = {
     return data;
   },
 
-  upvote: async (requestId, sessionId) => {
+  upvote: async (requestId) => {
     const response = await fetch(`${API_BASE_URL}/requests/${requestId}/upvote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session_id: sessionId }),
+      body: JSON.stringify({}),
     });
     const data = await response.json();
     if (!response.ok) {

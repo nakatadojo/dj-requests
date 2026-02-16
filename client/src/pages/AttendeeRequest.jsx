@@ -28,6 +28,7 @@ export default function AttendeeRequest() {
   });
 
   const [selectedSong, setSelectedSong] = useState(null);
+  const [upvotedRequests, setUpvotedRequests] = useState(new Set());
 
   const loadEvent = async () => {
     try {
@@ -69,16 +70,12 @@ export default function AttendeeRequest() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!sessionId) return;
 
     setMessage({ type: '', text: '' });
     setSubmitting(true);
 
     try {
-      const result = await requestsAPI.submit(slug, {
-        ...formData,
-        session_id: sessionId,
-      });
+      const result = await requestsAPI.submit(slug, formData);
 
       if (result.isDuplicate) {
         setMessage({ type: 'info', text: result.message });
@@ -111,18 +108,29 @@ export default function AttendeeRequest() {
   };
 
   const handleUpvote = async (requestId) => {
-    if (!sessionId) return;
+    // Prevent double-clicking
+    if (upvotedRequests.has(requestId)) {
+      setMessage({ type: 'error', text: 'You have already upvoted this song' });
+      return;
+    }
+
+    // Optimistically mark as upvoted
+    setUpvotedRequests(prev => new Set([...prev, requestId]));
 
     try {
-      await requestsAPI.upvote(requestId, sessionId);
+      await requestsAPI.upvote(requestId);
       loadRequests();
     } catch (err) {
+      // If failed, remove from local upvoted set
+      setUpvotedRequests(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(requestId);
+        return newSet;
+      });
       setMessage({ type: 'error', text: err.message });
+      // Still reload to get updated state from server
+      setTimeout(() => loadRequests(), 500);
     }
-  };
-
-  const hasUpvoted = (request) => {
-    return request.upvoter_sessions?.includes(sessionId);
   };
 
   if (loading) return <LoadingSpinner message="Loading event..." />;
@@ -284,14 +292,14 @@ export default function AttendeeRequest() {
                       </div>
                       <button
                         onClick={() => handleUpvote(request.id)}
-                        disabled={hasUpvoted(request)}
+                        disabled={upvotedRequests.has(request.id)}
                         className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2 transition-all ${
-                          hasUpvoted(request)
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-zinc-700 hover:bg-zinc-600 border border-purple-900/30'
-                        } disabled:cursor-not-allowed`}
+                          upvotedRequests.has(request.id)
+                            ? 'bg-purple-600 text-white cursor-not-allowed'
+                            : 'bg-zinc-700 hover:bg-zinc-600 border border-purple-900/30 active:scale-95'
+                        }`}
                       >
-                        <ThumbsUp className={`h-5 w-5 ${hasUpvoted(request) ? 'upvote-animation' : ''}`} />
+                        <ThumbsUp className={`h-5 w-5 ${upvotedRequests.has(request.id) ? 'fill-current' : ''}`} />
                         <span className="text-sm font-bold">{request.upvotes}</span>
                       </button>
                     </div>
