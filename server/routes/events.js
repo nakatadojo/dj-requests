@@ -36,7 +36,7 @@ router.get('/', authenticateDJ, (req, res, next) => {
  */
 router.post('/', authenticateDJ, (req, res, next) => {
   try {
-    const { name, date, genre_tags, venmo_username, queue_visible } = req.body;
+    const { name, date, genre_tags, venmo_username, queue_visible, requests_per_hour, rate_limit_message } = req.body;
 
     if (!name || !date) {
       return res.status(400).json({ error: 'Event name and date are required' });
@@ -47,8 +47,8 @@ router.post('/', authenticateDJ, (req, res, next) => {
     const genreTagsJson = genre_tags ? JSON.stringify(genre_tags) : null;
 
     db.prepare(`
-      INSERT INTO events (id, dj_id, slug, name, date, genre_tags, venmo_username, queue_visible, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
+      INSERT INTO events (id, dj_id, slug, name, date, genre_tags, venmo_username, queue_visible, status, requests_per_hour, rate_limit_message)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
     `).run(
       id,
       req.djId,
@@ -57,7 +57,9 @@ router.post('/', authenticateDJ, (req, res, next) => {
       date,
       genreTagsJson,
       venmo_username || null,
-      queue_visible !== false ? 1 : 0
+      queue_visible !== false ? 1 : 0,
+      requests_per_hour || 0,
+      rate_limit_message || null
     );
 
     const event = db.prepare('SELECT * FROM events WHERE id = ?').get(id);
@@ -110,7 +112,7 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
       return res.status(403).json({ error: 'Not authorized to modify this event' });
     }
 
-    const { queue_visible, venmo_username, name, date, genre_tags } = req.body;
+    const { queue_visible, venmo_username, name, date, genre_tags, requests_per_hour, rate_limit_message } = req.body;
 
     // Build update query dynamically
     const updates = [];
@@ -135,6 +137,14 @@ router.patch('/:slug', authenticateDJ, (req, res, next) => {
     if (genre_tags) {
       updates.push('genre_tags = ?');
       values.push(JSON.stringify(genre_tags));
+    }
+    if (requests_per_hour !== undefined) {
+      updates.push('requests_per_hour = ?');
+      values.push(requests_per_hour || 0);
+    }
+    if (rate_limit_message !== undefined) {
+      updates.push('rate_limit_message = ?');
+      values.push(rate_limit_message || null);
     }
 
     if (updates.length === 0) {

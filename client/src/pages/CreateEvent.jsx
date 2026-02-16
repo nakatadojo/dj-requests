@@ -10,6 +10,8 @@ export default function CreateEvent() {
     genre_tags: '',
     venmo_username: '',
     queue_visible: true,
+    requests_per_hour: 0,
+    rate_limit_message: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,6 +35,8 @@ export default function CreateEvent() {
         genre_tags: genre_tags_array,
         venmo_username: formData.venmo_username || null,
         queue_visible: formData.queue_visible,
+        requests_per_hour: parseInt(formData.requests_per_hour) || 0,
+        rate_limit_message: formData.rate_limit_message || null,
       };
 
       const event = await eventsAPI.create(eventData);
@@ -151,7 +155,7 @@ export default function CreateEvent() {
           </div>
 
           {/* Queue Visibility */}
-          <div className="mb-8">
+          <div className="mb-6">
             <label className="flex items-center gap-3">
               <input
                 type="checkbox"
@@ -165,6 +169,46 @@ export default function CreateEvent() {
             <p className="ml-8 mt-1 text-xs text-gray-400">
               When enabled, attendees can see all requests and upvotes in real-time
             </p>
+          </div>
+
+          {/* Rate Limiting */}
+          <div className="mb-6 rounded-lg bg-gray-700/50 border border-gray-600 p-4">
+            <h3 className="mb-3 text-sm font-semibold text-purple-400">Request Rate Limiting</h3>
+
+            <div className="mb-4">
+              <label htmlFor="requests_per_hour" className="mb-2 block text-sm font-medium">
+                Max Requests Per User (per hour)
+              </label>
+              <input
+                type="number"
+                id="requests_per_hour"
+                name="requests_per_hour"
+                value={formData.requests_per_hour}
+                onChange={handleChange}
+                min="0"
+                className="w-full rounded-lg bg-gray-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                placeholder="0 = unlimited"
+              />
+              <p className="mt-2 text-xs text-gray-400">Set to 0 for unlimited requests. Recommended: 3-5 per hour</p>
+            </div>
+
+            {formData.requests_per_hour > 0 && (
+              <div>
+                <label htmlFor="rate_limit_message" className="mb-2 block text-sm font-medium">
+                  Rate Limit Message
+                </label>
+                <textarea
+                  id="rate_limit_message"
+                  name="rate_limit_message"
+                  value={formData.rate_limit_message}
+                  onChange={handleChange}
+                  rows="3"
+                  className="w-full rounded-lg bg-gray-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  placeholder="You've reached the request limit. Please wait before submitting another song."
+                />
+                <p className="mt-2 text-xs text-gray-400">This message shows when users exceed the limit</p>
+              </div>
+            )}
           </div>
 
           {/* Submit */}

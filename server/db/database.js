@@ -28,6 +28,28 @@ db.pragma('foreign_keys = ON');
 const schema = readFileSync(join(__dirname, 'schema.sql'), 'utf-8');
 db.exec(schema);
 
+// Run migrations (safe to run multiple times)
+try {
+  const rateLimitMigration = readFileSync(join(__dirname, 'migrations/add_rate_limiting.sql'), 'utf-8');
+  const statements = rateLimitMigration.split(';').map(s => s.trim()).filter(s => s.length > 0);
+
+  for (const statement of statements) {
+    try {
+      db.exec(statement);
+    } catch (err) {
+      // Ignore "duplicate column" errors (migration already ran)
+      if (!err.message.includes('duplicate column')) {
+        throw err;
+      }
+    }
+  }
+} catch (err) {
+  // Migration file might not exist yet, that's ok
+  if (err.code !== 'ENOENT') {
+    console.error('Migration error:', err.message);
+  }
+}
+
 console.log('✓ Database initialized at:', DB_PATH);
 
 // Helper function to generate UUID (simple version)

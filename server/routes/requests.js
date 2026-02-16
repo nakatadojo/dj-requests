@@ -73,6 +73,23 @@ router.post('/:slug/requests', (req, res, next) => {
       return res.status(400).json({ error: 'Event has ended' });
     }
 
+    // Check rate limiting (if enabled)
+    if (event.requests_per_hour && event.requests_per_hour > 0) {
+      const oneHourAgo = getTimestamp() - 3600; // 3600 seconds = 1 hour
+
+      const recentRequests = db.prepare(`
+        SELECT COUNT(*) as count
+        FROM song_requests
+        WHERE event_id = ? AND requester_ip = ? AND created_at > ?
+      `).get(event.id, clientIp, oneHourAgo);
+
+      if (recentRequests.count >= event.requests_per_hour) {
+        return res.status(429).json({
+          error: event.rate_limit_message || 'You\'ve reached the request limit. Please wait before submitting another song.'
+        });
+      }
+    }
+
     // Get DJ's block list
     const dj = db.prepare('SELECT id FROM djs WHERE id = ?').get(event.dj_id);
     const blockPatterns = db.prepare(`
@@ -130,8 +147,8 @@ router.post('/:slug/requests', (req, res, next) => {
     // Create new request
     const id = generateId();
     db.prepare(`
-      INSERT INTO song_requests (id, event_id, song_name, artist, requester_name, upvotes, upvoter_sessions)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO song_requests (id, event_id, song_name, artist, requester_name, upvotes, upvoter_sessions, requester_ip)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       event.id,
@@ -139,7 +156,8 @@ router.post('/:slug/requests', (req, res, next) => {
       artist,
       requester_name || 'Anonymous',
       1, // Start with 1 upvote (from requester)
-      JSON.stringify([clientIp]) // Initialize with requester's IP
+      JSON.stringify([clientIp]), // Initialize with requester's IP
+      clientIp // Store requester IP for rate limiting
     );
 
     const newRequest = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(id);
