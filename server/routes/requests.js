@@ -121,14 +121,15 @@ router.post('/:slug/requests', (req, res, next) => {
     // Create new request
     const id = generateId();
     db.prepare(`
-      INSERT INTO song_requests (id, event_id, song_name, artist, requester_name, upvoter_sessions)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO song_requests (id, event_id, song_name, artist, requester_name, upvotes, upvoter_sessions)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       event.id,
       song_name,
       artist,
       requester_name || 'Anonymous',
+      1, // Start with 1 upvote (from requester)
       JSON.stringify([session_id]) // Initialize with requester's session
     );
 
