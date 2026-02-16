@@ -2,6 +2,10 @@
 
 A real-time web application that lets event attendees submit and upvote song requests via QR code, with a live DJ dashboard for managing requests.
 
+## 🚀 Quick Deploy
+
+**Want to deploy this right now?** → See **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** for step-by-step instructions to get a live URL with working QR codes in under 10 minutes!
+
 ## Features
 
 - **Attendee Features:**
@@ -107,6 +111,15 @@ DB_PATH=./server/db/requests.db
 CLIENT_URL=http://localhost:5173
 NODE_ENV=development
 ```
+
+## Deployment
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for detailed deployment instructions including:
+- Railway (recommended - free tier available)
+- Render (free tier)
+- Fly.io (free tier)
+
+Or use the **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** for fastest deployment to Railway.
 
 ## License
 
