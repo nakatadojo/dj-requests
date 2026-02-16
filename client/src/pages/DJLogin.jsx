@@ -29,19 +29,19 @@ export default function DJLogin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-black p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-venmo/10 p-4">
-            <Music className="h-12 w-12 text-venmo" />
+          <div className="mb-4 inline-flex items-center justify-center rounded-full bg-purple-600/20 p-4">
+            <Music className="h-12 w-12 text-purple-500" />
           </div>
-          <h1 className="text-3xl font-bold">DJ Request App</h1>
+          <h1 className="text-3xl font-bold text-white">DJ Request App</h1>
           <p className="mt-2 text-gray-400">Sign in to manage your events</p>
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="rounded-lg bg-gray-800 p-8 shadow-xl">
+        <form onSubmit={handleSubmit} className="rounded-lg bg-zinc-900 p-8 shadow-xl border border-purple-900/30">
           {error && (
             <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-red-400 text-sm">
               {error}
@@ -57,7 +57,7 @@ export default function DJLogin() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg bg-gray-700 px-4 py-3 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-venmo"
+              className="w-full rounded-lg bg-zinc-800 border border-purple-900/30 px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               placeholder="your@email.com"
               required
             />
@@ -72,7 +72,7 @@ export default function DJLogin() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg bg-gray-700 px-4 py-3 text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-venmo"
+              className="w-full rounded-lg bg-zinc-800 border border-purple-900/30 px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
               placeholder="••••••••"
               required
             />
@@ -81,7 +81,7 @@ export default function DJLogin() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-venmo px-4 py-3 font-semibold text-white transition-all hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+            className="w-full rounded-lg bg-purple-600 px-4 py-3 font-semibold text-white transition-all hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
             {loading ? 'Signing in...' : 'Sign In'}
           </button>
