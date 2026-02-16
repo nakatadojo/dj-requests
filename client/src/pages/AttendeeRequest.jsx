@@ -29,15 +29,17 @@ export default function AttendeeRequest() {
       setEvent(data);
     } catch (err) {
       console.error(err);
+      setEvent(null);
     }
   };
 
   const loadRequests = async () => {
     try {
       const data = await requestsAPI.getForEvent(slug);
-      setRequests(data);
+      setRequests(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setRequests([]);
     } finally {
       setLoading(false);
     }
