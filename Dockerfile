@@ -38,6 +38,9 @@ RUN npm run build
 # Go back to root for running the app
 WORKDIR /app
 
+# Create uploads directory for persistent storage
+RUN mkdir -p /app/server/uploads/covers
+
 # Expose port
 EXPOSE 3001
 
