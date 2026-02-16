@@ -1,14 +1,23 @@
 import express from 'express';
-import Stripe from 'stripe';
 import { authenticateToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Initialize Stripe with your secret key
 // In production, set STRIPE_SECRET_KEY in your Railway environment variables
-const stripe = process.env.STRIPE_SECRET_KEY
-  ? new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' })
-  : null;
+let stripe = null;
+let Stripe = null;
+
+try {
+  // Dynamically import Stripe only if needed
+  if (process.env.STRIPE_SECRET_KEY) {
+    const stripeModule = await import('stripe');
+    Stripe = stripeModule.default;
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2023-10-16' });
+  }
+} catch (error) {
+  console.log('Stripe not available:', error.message);
+}
 
 /**
  * Create a Stripe Checkout Session
