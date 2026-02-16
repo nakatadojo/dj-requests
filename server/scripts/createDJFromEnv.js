@@ -17,7 +17,8 @@ async function createDJFromEnv() {
       console.log('✅ DJ account already exists with this email');
       console.log(`   Email: ${email}`);
       console.log(`   ID: ${existing.id}`);
-      process.exit(0);
+      console.log('');
+      return; // Don't exit, just return
     }
 
     // Hash password
