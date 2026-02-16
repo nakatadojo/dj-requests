@@ -83,7 +83,8 @@ router.post('/', authenticateDJ, (req, res, next) => {
       is_recurring: Boolean(event.is_recurring),
     });
   } catch (error) {
-    next(error);
+    console.error('Error creating event:', error.message);
+    res.status(500).json({ error: error.message || 'Failed to create event' });
   }
 });
 
