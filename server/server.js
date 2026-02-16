@@ -36,7 +36,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// API Routes
+// API Routes - MUST come before static file serving
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/requests', requestsRoutes);
@@ -47,12 +47,17 @@ if (process.env.NODE_ENV === 'production') {
   const clientBuildPath = join(__dirname, '../client/dist');
   app.use(express.static(clientBuildPath));
 
-  app.get('*', (req, res) => {
+  // Only serve index.html for non-API routes
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
     res.sendFile(join(clientBuildPath, 'index.html'));
   });
 }
 
-// Error handling
+// Error handling - MUST come after all routes
 app.use(notFoundHandler);
 app.use(errorHandler);
 
