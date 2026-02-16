@@ -5,7 +5,8 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useSession } from '../hooks/useSession';
 import LoadingSpinner from '../components/LoadingSpinner';
 import VenmoButton from '../components/VenmoButton';
-import { Music, ThumbsUp, Clock, X, CheckCircle } from 'lucide-react';
+import SpotifySearch from '../components/SpotifySearch';
+import { Music, ThumbsUp, Clock, X, CheckCircle, Music2 } from 'lucide-react';
 
 export default function AttendeeRequest() {
   const { slug } = useParams();
@@ -23,7 +24,10 @@ export default function AttendeeRequest() {
     song_name: '',
     artist: '',
     requester_name: '',
+    albumArt: null,
   });
+
+  const [selectedSong, setSelectedSong] = useState(null);
 
   const loadEvent = async () => {
     try {
@@ -82,7 +86,8 @@ export default function AttendeeRequest() {
         // Show success modal
         setShowSuccessModal(true);
         setCanCloseModal(false);
-        setFormData({ song_name: '', artist: '', requester_name: '' });
+        setFormData({ song_name: '', artist: '', requester_name: '', albumArt: null });
+        setSelectedSong(null);
 
         // Enable close button after 5 seconds
         setTimeout(() => {
@@ -185,35 +190,51 @@ export default function AttendeeRequest() {
             </div>
           )}
 
+          {/* Spotify Search */}
           <div className="mb-4">
-            <label htmlFor="song_name" className="mb-2 block text-sm font-medium text-gray-300">
-              Song Name *
-            </label>
-            <input
-              type="text"
-              id="song_name"
-              value={formData.song_name}
-              onChange={(e) => setFormData({ ...formData, song_name: e.target.value })}
-              className="w-full rounded-lg bg-zinc-800 border border-purple-900/30 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-              placeholder="Enter song title"
-              required
+            <SpotifySearch
+              onSelectSong={(song) => {
+                setSelectedSong(song);
+                setFormData({
+                  ...formData,
+                  song_name: song.song_name,
+                  artist: song.artist,
+                  albumArt: song.albumArt,
+                });
+              }}
             />
           </div>
 
-          <div className="mb-4">
-            <label htmlFor="artist" className="mb-2 block text-sm font-medium text-gray-300">
-              Artist *
-            </label>
-            <input
-              type="text"
-              id="artist"
-              value={formData.artist}
-              onChange={(e) => setFormData({ ...formData, artist: e.target.value })}
-              className="w-full rounded-lg bg-zinc-800 border border-purple-900/30 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-              placeholder="Enter artist name"
-              required
-            />
-          </div>
+          {/* Selected Song Display */}
+          {selectedSong && (
+            <div className="mb-4 flex items-center gap-3 rounded-lg bg-purple-900/20 border border-purple-600/30 p-4">
+              {selectedSong.albumArt ? (
+                <img
+                  src={selectedSong.albumArt}
+                  alt={selectedSong.song_name}
+                  className="h-16 w-16 rounded object-cover"
+                />
+              ) : (
+                <div className="flex h-16 w-16 items-center justify-center rounded bg-purple-900/40">
+                  <Music2 className="h-8 w-8 text-purple-400" />
+                </div>
+              )}
+              <div className="flex-1">
+                <p className="font-semibold text-white">{selectedSong.song_name}</p>
+                <p className="text-sm text-gray-400">{selectedSong.artist}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedSong(null);
+                  setFormData({ ...formData, song_name: '', artist: '', albumArt: null });
+                }}
+                className="rounded-full bg-zinc-800 p-2 text-gray-400 hover:bg-zinc-700 hover:text-white transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+          )}
 
           <div className="mb-6">
             <label htmlFor="requester_name" className="mb-2 block text-sm font-medium text-gray-300">
@@ -231,10 +252,10 @@ export default function AttendeeRequest() {
 
           <button
             type="submit"
-            disabled={submitting}
-            className="w-full rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700 disabled:opacity-50 active:scale-95"
+            disabled={submitting || !selectedSong}
+            className="w-full rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
           >
-            {submitting ? 'Submitting...' : 'Submit Request'}
+            {submitting ? 'Submitting...' : selectedSong ? 'Submit Request' : 'Search for a song first'}
           </button>
         </form>
 

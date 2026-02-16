@@ -15,6 +15,7 @@ import eventsRoutes from './routes/events.js';
 import requestsRoutes from './routes/requests.js';
 import blocklistRoutes from './routes/blocklist.js';
 import stripeRoutes from './routes/stripe.js';
+import spotifyRoutes from './routes/spotify.js';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -45,6 +46,7 @@ app.use('/api/events', requestsRoutes); // Mount requests under /api/events
 app.use('/api/requests', requestsRoutes); // Also keep /api/requests for upvote endpoint
 app.use('/api/blocklist', blocklistRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/spotify', spotifyRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
