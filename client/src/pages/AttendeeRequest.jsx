@@ -5,7 +5,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useSession } from '../hooks/useSession';
 import LoadingSpinner from '../components/LoadingSpinner';
 import VenmoButton from '../components/VenmoButton';
-import { Music, ThumbsUp, Clock } from 'lucide-react';
+import { Music, ThumbsUp, Clock, X, CheckCircle } from 'lucide-react';
 
 export default function AttendeeRequest() {
   const { slug } = useParams();
@@ -16,6 +16,8 @@ export default function AttendeeRequest() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [canCloseModal, setCanCloseModal] = useState(false);
 
   const [formData, setFormData] = useState({
     song_name: '',
@@ -77,8 +79,15 @@ export default function AttendeeRequest() {
       if (result.isDuplicate) {
         setMessage({ type: 'info', text: result.message });
       } else {
-        setMessage({ type: 'success', text: 'Request submitted successfully!' });
+        // Show success modal
+        setShowSuccessModal(true);
+        setCanCloseModal(false);
         setFormData({ song_name: '', artist: '', requester_name: '' });
+
+        // Enable close button after 5 seconds
+        setTimeout(() => {
+          setCanCloseModal(true);
+        }, 5000);
       }
 
       loadRequests();
@@ -86,6 +95,13 @@ export default function AttendeeRequest() {
       setMessage({ type: 'error', text: err.message });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const closeModal = () => {
+    if (canCloseModal) {
+      setShowSuccessModal(false);
+      setCanCloseModal(false);
     }
   };
 
@@ -262,6 +278,58 @@ export default function AttendeeRequest() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Success Modal */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4">
+            <div className="relative w-full max-w-md rounded-lg bg-zinc-900 border border-purple-600/50 p-8 shadow-2xl">
+              {/* Close button (only shows after 5 seconds) */}
+              {canCloseModal && (
+                <button
+                  onClick={closeModal}
+                  className="absolute top-4 right-4 rounded-full bg-zinc-800 p-2 text-gray-400 hover:bg-zinc-700 hover:text-white transition-colors"
+                  aria-label="Close"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              )}
+
+              {/* Success Icon */}
+              <div className="mb-6 flex justify-center">
+                <div className="rounded-full bg-green-500/20 p-4">
+                  <CheckCircle className="h-16 w-16 text-green-500" />
+                </div>
+              </div>
+
+              {/* Success Message */}
+              <h3 className="mb-3 text-center text-2xl font-bold text-white">
+                Request Submitted!
+              </h3>
+              <p className="mb-6 text-center text-gray-300">
+                Your song request has been sent to the DJ. Thanks for contributing to the vibe!
+              </p>
+
+              {/* Venmo Button in Modal */}
+              {event.venmo_username && (
+                <div className="space-y-3">
+                  <p className="text-center text-sm text-gray-400">
+                    Want to support the DJ?
+                  </p>
+                  <div className="flex justify-center">
+                    <VenmoButton venmoUsername={event.venmo_username} />
+                  </div>
+                </div>
+              )}
+
+              {/* Timer indicator (optional visual feedback) */}
+              {!canCloseModal && (
+                <p className="mt-6 text-center text-xs text-gray-500">
+                  You can close this in a few seconds...
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>
