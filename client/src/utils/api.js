@@ -137,3 +137,30 @@ export const blocklistAPI = {
       method: 'DELETE',
     }),
 };
+
+// Upload API
+export const uploadAPI = {
+  uploadCover: async (file) => {
+    const token = localStorage.getItem('dj_token');
+    const formData = new FormData();
+    formData.append('cover', file);
+
+    const response = await fetch(`${API_BASE_URL}/upload/cover`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(error.error || 'Upload failed');
+    }
+
+    return response.json();
+  },
+};
+
+// Export API_BASE_URL for direct use
+export { API_BASE_URL };

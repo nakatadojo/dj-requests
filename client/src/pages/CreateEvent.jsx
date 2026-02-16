@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { eventsAPI } from '../utils/api';
+import { eventsAPI, uploadAPI } from '../utils/api';
 import { ArrowLeft, Calendar, Tag, Upload, X } from 'lucide-react';
 
 export default function CreateEvent() {
@@ -126,23 +126,7 @@ export default function CreateEvent() {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('cover', coverImage);
-
-      const token = localStorage.getItem('dj_token');
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/upload/cover`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload image');
-      }
-
-      const data = await response.json();
+      const data = await uploadAPI.uploadCover(coverImage);
       return data.url;
     } catch (err) {
       setError('Failed to upload cover image');
