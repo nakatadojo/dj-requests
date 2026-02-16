@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import eventsRoutes from './routes/events.js';
 import requestsRoutes from './routes/requests.js';
 import blocklistRoutes from './routes/blocklist.js';
+import stripeRoutes from './routes/stripe.js';
 
 // Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
@@ -41,6 +42,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/requests', requestsRoutes);
 app.use('/api/blocklist', blocklistRoutes);
+app.use('/api/stripe', stripeRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
