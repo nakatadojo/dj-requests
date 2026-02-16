@@ -13,16 +13,18 @@ WORKDIR /app
 
 # Copy all package files first
 COPY package*.json ./
-
-# Copy client and server package files
 COPY client/package*.json ./client/
 COPY server/package*.json ./server/
 
-# Install root dependencies (without workspaces to avoid conflicts)
+# Install root dependencies
 RUN npm install --legacy-peer-deps
 
 # Install client dependencies
 WORKDIR /app/client
+RUN npm install --legacy-peer-deps
+
+# Install server dependencies
+WORKDIR /app/server
 RUN npm install --legacy-peer-deps
 
 # Go back to root and copy all application code
