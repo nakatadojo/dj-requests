@@ -18,7 +18,7 @@ async function createDJFromEnv() {
       console.log(`   Email: ${email}`);
       console.log(`   ID: ${existing.id}`);
       console.log('');
-      return; // Don't exit, just return
+      return existing; // Return the existing account
     }
 
     // Hash password

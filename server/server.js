@@ -4,9 +4,10 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import bcrypt from 'bcrypt';
 
 // Initialize database (this runs schema)
-import './db/database.js';
+import db, { generateId } from './db/database.js';
 
 // Import routes
 import authRoutes from './routes/auth.js';
@@ -69,8 +70,41 @@ const server = createServer(app);
 // Initialize WebSocket
 initWebSocket(server);
 
+// Create DJ account from environment variables if provided
+async function ensureDJAccount() {
+  const email = process.env.DJ_EMAIL;
+  const password = process.env.DJ_PASSWORD;
+  const venmo_username = process.env.DJ_VENMO || '';
+
+  if (!email || !password) {
+    return; // No env vars set, skip
+  }
+
+  try {
+    const existing = db.prepare('SELECT id FROM djs WHERE email = ?').get(email);
+    if (existing) {
+      console.log(`✓ DJ account exists: ${email}`);
+      return;
+    }
+
+    // Create new DJ account
+    const password_hash = await bcrypt.hash(password, 10);
+    const id = generateId();
+    db.prepare(`
+      INSERT INTO djs (id, email, password_hash, venmo_username)
+      VALUES (?, ?, ?, ?)
+    `).run(id, email, password_hash, venmo_username || null);
+
+    console.log(`✓ Created DJ account: ${email}`);
+  } catch (error) {
+    console.error('Error creating DJ account:', error.message);
+  }
+}
+
 // Start server
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
+  await ensureDJAccount();
+
   console.log(`\n🎵 DJ Request App Server`);
   console.log(`✓ Server running on http://localhost:${PORT}`);
   console.log(`✓ API available at http://localhost:${PORT}/api`);
