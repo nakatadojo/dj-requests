@@ -41,7 +41,8 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes - MUST come before static file serving
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
-app.use('/api/requests', requestsRoutes);
+app.use('/api/events', requestsRoutes); // Mount requests under /api/events
+app.use('/api/requests', requestsRoutes); // Also keep /api/requests for upvote endpoint
 app.use('/api/blocklist', blocklistRoutes);
 app.use('/api/stripe', stripeRoutes);
 
