@@ -9,7 +9,8 @@
     "client:dev": "cd client && npm run dev",
     "build": "cd client && npm run build",
     "start": "node server/server.js",
-    "create-dj": "node server/scripts/createDJ.js"
+    "create-dj": "node server/scripts/createDJ.js",
+    "create-dj-env": "node server/scripts/createDJFromEnv.js"
   },
   "engines": {
     "node": ">=18.0.0",

@@ -41,5 +41,5 @@ WORKDIR /app
 # Expose port
 EXPOSE 3001
 
-# Start the application
-CMD ["npm", "start"]
+# Start script that creates DJ account if needed, then starts server
+CMD ["sh", "-c", "npm run create-dj-env && npm start"]
