@@ -3,11 +3,14 @@ export default function VenmoButton({ venmoUsername }) {
 
   const handleClick = () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const venmoUrl = isMobile
-      ? `venmo://paycharge?txn=pay&recipients=${venmoUsername}`
-      : `https://venmo.com/${venmoUsername}`;
 
-    window.open(venmoUrl, '_blank');
+    if (isMobile) {
+      // Use location.href for deep link so it opens the Venmo app directly
+      window.location.href = `venmo://paycharge?txn=pay&recipients=${venmoUsername}`;
+    } else {
+      // Desktop: open Venmo website in new tab
+      window.open(`https://venmo.com/${venmoUsername}`, '_blank');
+    }
   };
 
   return (
