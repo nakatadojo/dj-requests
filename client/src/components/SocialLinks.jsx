@@ -1,4 +1,4 @@
-import { Instagram, Twitter, Music2, Globe } from 'lucide-react';
+import { Instagram, Twitter, Music2, CalendarCheck } from 'lucide-react';
 
 export default function SocialLinks({ instagram_handle, twitter_handle, tiktok_handle, website_url, venmo_username }) {
   const hasSocials = instagram_handle || twitter_handle || tiktok_handle || website_url;
@@ -61,16 +61,16 @@ export default function SocialLinks({ instagram_handle, twitter_handle, tiktok_h
         </a>
       )}
 
-      {/* Website */}
+      {/* Book Me */}
       {website_url && (
         <a
           href={website_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-lg bg-gray-800 px-6 py-3 font-semibold text-white transition-all hover:bg-gray-700 active:scale-95"
+          className="flex items-center gap-2 rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white transition-all hover:bg-purple-700 active:scale-95"
         >
-          <Globe className="h-5 w-5" />
-          Website
+          <CalendarCheck className="h-5 w-5" />
+          Book Me
         </a>
       )}
     </div>

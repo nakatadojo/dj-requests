@@ -379,14 +379,26 @@ export default function AttendeeRequest() {
                 Your song request has been sent to the DJ. Thanks for contributing to the vibe!
               </p>
 
-              {/* Venmo Button in Modal */}
-              {event.venmo_username && (
+              {/* Venmo + Book Me Buttons in Modal */}
+              {(event.venmo_username || event.website_url) && (
                 <div className="space-y-3">
                   <p className="text-center text-sm text-gray-400">
                     Want to support the DJ?
                   </p>
-                  <div className="flex justify-center">
-                    <VenmoButton venmoUsername={event.venmo_username} />
+                  <div className="flex flex-wrap justify-center gap-3">
+                    {event.venmo_username && (
+                      <VenmoButton venmoUsername={event.venmo_username} />
+                    )}
+                    {event.website_url && (
+                      <a
+                        href={event.website_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white transition-all hover:bg-purple-700 active:scale-95"
+                      >
+                        Book Me
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
