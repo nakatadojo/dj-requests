@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff } from 'lucide-react';
 
 export default function DJLiveView() {
   const { slug } = useParams();
@@ -14,6 +14,8 @@ export default function DJLiveView() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const prevRequestCount = useRef(0);
 
   const loadEvent = async () => {
     try {
@@ -38,17 +40,62 @@ export default function DJLiveView() {
   useEffect(() => {
     loadEvent();
     loadRequests();
+
+    // Check if notifications are already granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      setNotificationsEnabled(true);
+    }
   }, [slug]);
+
+  const toggleNotifications = async () => {
+    if (!('Notification' in window)) {
+      alert('Your browser does not support notifications');
+      return;
+    }
+
+    if (notificationsEnabled) {
+      setNotificationsEnabled(false);
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      setNotificationsEnabled(true);
+      new Notification('Notifications Enabled', {
+        body: 'You will be notified when new song requests come in.',
+        icon: '/favicon.ico',
+      });
+    }
+  };
+
+  const sendNotification = useCallback((data) => {
+    if (!notificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+
+    const req = data.request || data;
+    const songName = req.song_name || 'New song';
+    const artist = req.artist || '';
+    const requester = req.requester_name || 'Someone';
+
+    new Notification('New Song Request!', {
+      body: `${requester} requested "${songName}" by ${artist}`,
+      icon: '/favicon.ico',
+      tag: `request-${Date.now()}`,
+    });
+  }, [notificationsEnabled]);
 
   // WebSocket handler
   const handleWebSocketMessage = useCallback((data) => {
-    if (data.type === 'queue:update' || data.type === 'request:added') {
+    if (data.type === 'request:added') {
+      sendNotification(data);
+      loadRequests();
+    }
+    if (data.type === 'queue:update') {
       loadRequests();
     }
     if (data.type === 'visibility:toggle') {
       loadEvent();
     }
-  }, []);
+  }, [sendNotification]);
 
   useWebSocket(slug, handleWebSocketMessage);
 
@@ -154,6 +201,17 @@ export default function DJLiveView() {
             <div className="mb-4 flex items-center justify-between">
               <h1 className="text-2xl font-bold">{event.name}</h1>
               <div className="flex gap-2">
+                <button
+                  onClick={toggleNotifications}
+                  className={`flex items-center gap-2 rounded-lg px-4 py-2 ${
+                    notificationsEnabled
+                      ? 'bg-green-600 hover:bg-green-700'
+                      : 'bg-gray-800 hover:bg-gray-700'
+                  }`}
+                  title={notificationsEnabled ? 'Notifications on' : 'Notifications off'}
+                >
+                  {notificationsEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+                </button>
                 <button
                   onClick={() => navigate(`/dj/event/${slug}/rankings`)}
                   className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 hover:bg-purple-700"
