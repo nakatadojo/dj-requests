@@ -14,6 +14,17 @@ import BlockList from './pages/BlockList';
 import SongRankings from './pages/SongRankings';
 import EditEvent from './pages/EditEvent';
 
+// Redirect logged-in users to dashboard, otherwise show landing page
+function AuthRedirect() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return <LoadingSpinner message="Loading..." />;
+  }
+
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />;
+}
+
 // Protected route wrapper for DJ routes
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -22,7 +33,7 @@ function ProtectedRoute({ children }) {
     return <LoadingSpinner message="Loading..." />;
   }
 
-  return isAuthenticated ? children : <Navigate to="/" replace />;
+  return isAuthenticated ? children : <Navigate to="/login" replace />;
 }
 
 function App() {
@@ -31,7 +42,7 @@ function App() {
       <AuthProvider>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<AuthRedirect />} />
           <Route path="/login" element={<DJLogin />} />
           <Route path="/event/:slug" element={<AttendeeRequest />} />
 
