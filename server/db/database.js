@@ -11,7 +11,11 @@ const __dirname = dirname(__filename);
 
 // Use persistent volume in production (Railway mounts at /data)
 const isProduction = existsSync('/data') || process.env.NODE_ENV === 'production';
-const DB_PATH = process.env.DB_PATH || (isProduction ? '/data/requests.db' : join(__dirname, 'requests.db'));
+
+// In production, always use /data for persistence. Ignore DB_PATH env var if it's a relative path.
+const envDbPath = process.env.DB_PATH;
+const useEnvPath = envDbPath && (envDbPath.startsWith('/data') || !isProduction);
+const DB_PATH = useEnvPath ? envDbPath : (isProduction ? '/data/requests.db' : join(__dirname, 'requests.db'));
 
 // Ensure the directory exists
 const dbDir = dirname(DB_PATH);
