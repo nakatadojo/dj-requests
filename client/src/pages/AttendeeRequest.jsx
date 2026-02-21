@@ -281,20 +281,6 @@ export default function AttendeeRequest() {
             </div>
           )}
 
-          <div className="mb-6">
-            <label htmlFor="requester_name" className="mb-2 block text-sm font-medium text-gray-300">
-              Your Name (optional)
-            </label>
-            <input
-              type="text"
-              id="requester_name"
-              value={formData.requester_name}
-              onChange={(e) => setFormData({ ...formData, requester_name: e.target.value })}
-              className="w-full rounded-lg bg-zinc-800 border border-purple-900/30 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-              placeholder="Anonymous"
-            />
-          </div>
-
           <button
             type="submit"
             disabled={submitting || !selectedSong}
