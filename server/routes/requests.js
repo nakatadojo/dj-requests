@@ -30,14 +30,23 @@ router.get('/:slug/requests', (req, res, next) => {
       return res.status(404).json({ error: 'Event not found' });
     }
 
-    const requests = db.prepare(`
-      SELECT * FROM song_requests
-      WHERE event_id = ? AND status IN ('queued', 'pinned')
-      ORDER BY
-        CASE WHEN status = 'pinned' THEN 0 ELSE 1 END,
-        upvotes DESC,
-        created_at ASC
-    `).all(event.id);
+    // If ?all=true, return all requests including played/skipped
+    const showAll = req.query.all === 'true';
+
+    const requests = showAll
+      ? db.prepare(`
+          SELECT * FROM song_requests
+          WHERE event_id = ?
+          ORDER BY created_at DESC
+        `).all(event.id)
+      : db.prepare(`
+          SELECT * FROM song_requests
+          WHERE event_id = ? AND status IN ('queued', 'pinned')
+          ORDER BY
+            CASE WHEN status = 'pinned' THEN 0 ELSE 1 END,
+            upvotes DESC,
+            created_at ASC
+        `).all(event.id);
 
     // Parse upvoter_sessions for each request
     const requestsWithParsed = requests.map(r => ({

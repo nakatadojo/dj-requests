@@ -4,7 +4,7 @@ import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List } from 'lucide-react';
 
 export default function DJLiveView() {
   const { slug } = useParams();
@@ -15,6 +15,8 @@ export default function DJLiveView() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [notificationPermission, setNotificationPermission] = useState('default');
+  const [activeTab, setActiveTab] = useState('queue');
+  const [allRequests, setAllRequests] = useState([]);
 
   const loadEvent = async () => {
     try {
@@ -33,6 +35,15 @@ export default function DJLiveView() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadAllRequests = async () => {
+    try {
+      const data = await requestsAPI.getForEvent(slug, true);
+      setAllRequests(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -143,7 +154,9 @@ export default function DJLiveView() {
     }
   };
 
-  const filteredRequests = requests.filter(r =>
+  const displayRequests = activeTab === 'queue' ? requests : allRequests;
+
+  const filteredRequests = displayRequests.filter(r =>
     r.song_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
     r.requester_name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -231,6 +244,35 @@ export default function DJLiveView() {
               </div>
             </div>
 
+            {/* Queue / History Tabs */}
+            <div className="mb-4 flex gap-2">
+              <button
+                onClick={() => setActiveTab('queue')}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === 'queue'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`}
+              >
+                <List className="h-4 w-4" />
+                Queue ({requests.length})
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('history');
+                  loadAllRequests();
+                }}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                  activeTab === 'history'
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                }`}
+              >
+                <History className="h-4 w-4" />
+                History
+              </button>
+            </div>
+
             {/* Search */}
             <div className="mb-4 relative">
               <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
@@ -268,6 +310,15 @@ export default function DJLiveView() {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
+                        {activeTab === 'history' && (request.status === 'played' || request.status === 'skipped') && (
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${
+                            request.status === 'played'
+                              ? 'bg-green-600/20 text-green-400'
+                              : 'bg-red-600/20 text-red-400'
+                          }`}>
+                            {request.status === 'played' ? 'Played' : 'Skipped'}
+                          </span>
+                        )}
                         <div className="text-center">
                           <div className="text-lg font-bold text-venmo">{request.upvotes}</div>
                           <div className="text-xs text-gray-400">votes</div>
@@ -275,6 +326,7 @@ export default function DJLiveView() {
                         </div>
                       </div>
                     </div>
+                    {(request.status === 'queued' || request.status === 'pinned') && (
                     <div className="mt-3 flex gap-2">
                       <button
                         onClick={() => updateRequestStatus(request.id, 'pinned')}
@@ -299,6 +351,7 @@ export default function DJLiveView() {
                         Skip
                       </button>
                     </div>
+                    )}
                   </div>
                 ))
               )}

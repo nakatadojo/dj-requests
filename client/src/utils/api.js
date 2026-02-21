@@ -80,8 +80,11 @@ export const eventsAPI = {
 
 // Requests API
 export const requestsAPI = {
-  getForEvent: async (slug) => {
-    const response = await fetch(`${API_BASE_URL}/events/${slug}/requests`);
+  getForEvent: async (slug, all = false) => {
+    const url = all
+      ? `${API_BASE_URL}/events/${slug}/requests?all=true`
+      : `${API_BASE_URL}/events/${slug}/requests`;
+    const response = await fetch(url);
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Request failed' }));
       throw new Error(error.error || 'Failed to load requests');
