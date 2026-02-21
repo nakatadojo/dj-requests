@@ -271,6 +271,7 @@ export default function DJLiveView() {
                         <div className="text-center">
                           <div className="text-lg font-bold text-venmo">{request.upvotes}</div>
                           <div className="text-xs text-gray-400">votes</div>
+                          <div className="mt-1 text-xs text-gray-600 font-mono">{request.requester_ip}</div>
                         </div>
                       </div>
                     </div>
