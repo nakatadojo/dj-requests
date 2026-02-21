@@ -210,6 +210,13 @@ export default function AttendeeRequest() {
           )}
         </div>
 
+        {/* Disclaimer */}
+        {event.disclaimer && (
+          <div className="mb-4 rounded-lg bg-yellow-500/10 border border-yellow-500/30 p-4">
+            <p className="text-sm text-yellow-300">{event.disclaimer}</p>
+          </div>
+        )}
+
         {/* Request Form */}
         <form onSubmit={handleSubmit} className="mb-8 rounded-lg bg-zinc-900 border border-purple-900/30 p-6">
           <h2 className="mb-4 text-xl font-semibold text-white">Request a Song</h2>

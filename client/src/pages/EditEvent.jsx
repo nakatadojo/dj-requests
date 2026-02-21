@@ -37,6 +37,7 @@ export default function EditEvent() {
         twitter_handle: event.twitter_handle || '',
         tiktok_handle: event.tiktok_handle || '',
         website_url: event.website_url || '',
+        disclaimer: event.disclaimer || '',
       });
       if (event.cover_image_url) {
         setCoverPreview(event.cover_image_url);
@@ -79,6 +80,7 @@ export default function EditEvent() {
         twitter_handle: formData.twitter_handle || null,
         tiktok_handle: formData.tiktok_handle || null,
         website_url: formData.website_url || null,
+        disclaimer: formData.disclaimer || null,
       };
 
       await eventsAPI.update(slug, eventData);
@@ -379,6 +381,23 @@ export default function EditEvent() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Disclaimer */}
+          <div className="mb-6">
+            <label htmlFor="disclaimer" className="mb-2 block text-sm font-medium">
+              Disclaimer (optional)
+            </label>
+            <textarea
+              id="disclaimer"
+              name="disclaimer"
+              value={formData.disclaimer}
+              onChange={handleChange}
+              rows="3"
+              className="w-full rounded-lg bg-gray-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-venmo"
+              placeholder="e.g. Not all requests are guaranteed to be played. Tips are appreciated!"
+            />
+            <p className="mt-1 text-xs text-gray-400">Shown to attendees above the request form</p>
           </div>
 
           {/* Queue Visibility */}

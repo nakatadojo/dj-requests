@@ -39,6 +39,7 @@ const migrations = [
   'add_recurring_events.sql',
   'add_social_links.sql',
   'add_event_visibility.sql',
+  'add_disclaimer.sql',
 ];
 
 for (const migrationFile of migrations) {
