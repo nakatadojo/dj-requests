@@ -2,6 +2,7 @@ import express from 'express';
 import db, { generateId, getTimestamp } from '../db/database.js';
 import { authenticateDJ } from '../middleware/auth.js';
 import { songMatches, matchesBlockPattern } from '../utils/fuzzyMatch.js';
+import { broadcastNewRequest, broadcastQueueUpdate } from '../websocket.js';
 
 const router = express.Router();
 
@@ -133,6 +134,9 @@ router.post('/:slug/requests', (req, res, next) => {
         WHERE id = ?
       `).run(newUpvotes, JSON.stringify(upvoters), duplicate.id);
 
+      // Broadcast queue update so DJ sees new vote count
+      broadcastQueueUpdate(req.params.slug);
+
       return res.status(200).json({
         message: 'This song has already been requested! We\'ve added your upvote instead.',
         isDuplicate: true,
@@ -161,6 +165,9 @@ router.post('/:slug/requests', (req, res, next) => {
     );
 
     const newRequest = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(id);
+
+    // Broadcast to DJ's live view
+    broadcastNewRequest(req.params.slug, newRequest);
 
     res.status(201).json({
       ...newRequest,
@@ -200,6 +207,10 @@ router.post('/:id/upvote', (req, res, next) => {
       SET upvotes = ?, upvoter_sessions = ?
       WHERE id = ?
     `).run(newUpvotes, JSON.stringify(upvoters), req.params.id);
+
+    // Broadcast queue update so DJ sees new vote count
+    const event = db.prepare('SELECT slug FROM events WHERE id = ?').get(request.event_id);
+    if (event) broadcastQueueUpdate(event.slug);
 
     res.json({
       ...request,
@@ -242,6 +253,10 @@ router.patch('/:id', authenticateDJ, (req, res, next) => {
       SET status = ?, played_at = ?
       WHERE id = ?
     `).run(status, played_at, req.params.id);
+
+    // Broadcast queue update to attendees
+    const eventForBroadcast = db.prepare('SELECT slug FROM events WHERE id = ?').get(request.event_id);
+    if (eventForBroadcast) broadcastQueueUpdate(eventForBroadcast.slug);
 
     const updatedRequest = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
 
