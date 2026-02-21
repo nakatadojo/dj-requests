@@ -9,13 +9,11 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Use persistent volume in production (Railway mounts at /data)
-const isProduction = existsSync('/data') || process.env.NODE_ENV === 'production';
-
-// In production, always use /data for persistence. Ignore DB_PATH env var if it's a relative path.
-const envDbPath = process.env.DB_PATH;
-const useEnvPath = envDbPath && (envDbPath.startsWith('/data') || !isProduction);
-const DB_PATH = useEnvPath ? envDbPath : (isProduction ? '/data/requests.db' : join(__dirname, 'requests.db'));
+// If /data volume exists (Railway), ALWAYS use it. No env var override.
+const DB_PATH = existsSync('/data') ? '/data/requests.db' : join(__dirname, 'requests.db');
+console.log('DB_PATH resolved to:', DB_PATH);
+console.log('/data exists:', existsSync('/data'));
+console.log('DB_PATH env var:', process.env.DB_PATH || '(not set)');
 
 // Ensure the directory exists
 const dbDir = dirname(DB_PATH);
