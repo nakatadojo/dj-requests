@@ -40,6 +40,11 @@ export default function DJLiveView() {
     loadEvent();
     loadRequests();
 
+    // Auto-refresh every 60 seconds as a fallback
+    const interval = setInterval(() => {
+      loadRequests();
+    }, 60000);
+
     // Auto-request notification permission on load and persist
     if ('Notification' in window) {
       const currentPerm = Notification.permission;
@@ -56,6 +61,8 @@ export default function DJLiveView() {
         localStorage.setItem('dj_notifications', 'enabled');
       }
     }
+
+    return () => clearInterval(interval);
   }, [slug]);
 
   const sendNotification = useCallback((data) => {
