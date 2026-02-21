@@ -52,6 +52,31 @@ const uploadsPath = isProduction
 console.log('Uploads path:', uploadsPath);
 app.use('/uploads', express.static(uploadsPath));
 
+// Health check - shows db path and volume status
+app.get('/api/health', (req, res) => {
+  const dataExists = existsSync('/data');
+  const dbPath = dataExists ? '/data/requests.db' : 'local (ephemeral!)';
+  const dbFileExists = existsSync(dataExists ? '/data/requests.db' : join(__dirname, 'db', 'requests.db'));
+
+  let eventCount = 0;
+  let requestCount = 0;
+  try {
+    eventCount = db.prepare('SELECT COUNT(*) as count FROM events').get().count;
+    requestCount = db.prepare('SELECT COUNT(*) as count FROM song_requests').get().count;
+  } catch (e) {}
+
+  res.json({
+    status: 'ok',
+    volume_mounted: dataExists,
+    db_path: dbPath,
+    db_file_exists: dbFileExists,
+    event_count: eventCount,
+    request_count: requestCount,
+    node_env: process.env.NODE_ENV || '(not set)',
+    db_path_env: process.env.DB_PATH || '(not set)',
+  });
+});
+
 // API Routes - MUST come before static file serving
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventsRoutes);
