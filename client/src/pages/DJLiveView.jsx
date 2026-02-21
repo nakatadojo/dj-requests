@@ -40,13 +40,20 @@ export default function DJLiveView() {
     loadEvent();
     loadRequests();
 
-    // Auto-request notification permission on load
+    // Auto-request notification permission on load and persist
     if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-      if (Notification.permission === 'default') {
+      const currentPerm = Notification.permission;
+      setNotificationPermission(currentPerm);
+
+      if (currentPerm === 'default') {
         Notification.requestPermission().then((perm) => {
           setNotificationPermission(perm);
+          if (perm === 'granted') {
+            localStorage.setItem('dj_notifications', 'enabled');
+          }
         });
+      } else if (currentPerm === 'granted') {
+        localStorage.setItem('dj_notifications', 'enabled');
       }
     }
   }, [slug]);
