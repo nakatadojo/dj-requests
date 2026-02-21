@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -14,8 +14,7 @@ export default function DJLiveView() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const prevRequestCount = useRef(0);
+  const [notificationPermission, setNotificationPermission] = useState('default');
 
   const loadEvent = async () => {
     try {
@@ -41,47 +40,32 @@ export default function DJLiveView() {
     loadEvent();
     loadRequests();
 
-    // Check if notifications are already granted
-    if ('Notification' in window && Notification.permission === 'granted') {
-      setNotificationsEnabled(true);
+    // Auto-request notification permission on load
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then((perm) => {
+          setNotificationPermission(perm);
+        });
+      }
     }
   }, [slug]);
 
-  const toggleNotifications = async () => {
-    if (!('Notification' in window)) {
-      alert('Your browser does not support notifications');
-      return;
-    }
-
-    if (notificationsEnabled) {
-      setNotificationsEnabled(false);
-      return;
-    }
-
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      setNotificationsEnabled(true);
-      new Notification('Notifications Enabled', {
-        body: 'You will be notified when new song requests come in.',
-        icon: '/favicon.ico',
-      });
-    }
-  };
-
   const sendNotification = useCallback((data) => {
-    if (!notificationsEnabled || !('Notification' in window) || Notification.permission !== 'granted') return;
-
     const req = data.request || data;
     const songName = req.song_name || 'New song';
     const artist = req.artist || '';
     const requester = req.requester_name || 'Someone';
 
-    new Notification('New Song Request!', {
-      body: `${requester} requested "${songName}" by ${artist}`,
-      icon: '/favicon.ico',
-      tag: `request-${Date.now()}`,
-    });
-  }, [notificationsEnabled]);
+    // Send browser notification if permission granted
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('New Song Request!', {
+        body: `${requester} requested "${songName}" by ${artist}`,
+        icon: '/favicon.ico',
+        tag: `request-${Date.now()}`,
+      });
+    }
+  }, []);
 
   // WebSocket handler
   const handleWebSocketMessage = useCallback((data) => {
@@ -201,17 +185,21 @@ export default function DJLiveView() {
             <div className="mb-4 flex items-center justify-between">
               <h1 className="text-2xl font-bold">{event.name}</h1>
               <div className="flex gap-2">
-                <button
-                  onClick={toggleNotifications}
-                  className={`flex items-center gap-2 rounded-lg px-4 py-2 ${
-                    notificationsEnabled
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-gray-800 hover:bg-gray-700'
+                <div
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                    notificationPermission === 'granted'
+                      ? 'bg-green-600/20 text-green-400'
+                      : 'bg-yellow-600/20 text-yellow-400 cursor-pointer'
                   }`}
-                  title={notificationsEnabled ? 'Notifications on' : 'Notifications off'}
+                  title={notificationPermission === 'granted' ? 'Notifications active' : 'Click to enable notifications'}
+                  onClick={() => {
+                    if (notificationPermission !== 'granted' && 'Notification' in window) {
+                      Notification.requestPermission().then((perm) => setNotificationPermission(perm));
+                    }
+                  }}
                 >
-                  {notificationsEnabled ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
-                </button>
+                  {notificationPermission === 'granted' ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
+                </div>
                 <button
                   onClick={() => navigate(`/dj/event/${slug}/rankings`)}
                   className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 hover:bg-purple-700"
