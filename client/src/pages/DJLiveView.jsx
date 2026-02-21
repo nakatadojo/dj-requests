@@ -4,7 +4,7 @@ import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List, Star } from 'lucide-react';
 
 export default function DJLiveView() {
   const { slug } = useParams();
@@ -138,6 +138,17 @@ export default function DJLiveView() {
     try {
       await requestsAPI.updateStatus(requestId, status);
       loadRequests();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const rateRequest = async (requestId, rating) => {
+    try {
+      await requestsAPI.rate(requestId, rating);
+      // Update locally for instant feedback
+      setRequests(prev => prev.map(r => r.id === requestId ? { ...r, dj_rating: rating } : r));
+      setAllRequests(prev => prev.map(r => r.id === requestId ? { ...r, dj_rating: rating } : r));
     } catch (err) {
       console.error(err);
     }
@@ -325,6 +336,25 @@ export default function DJLiveView() {
                           <div className="mt-1 text-xs text-gray-600 font-mono">{request.requester_ip}</div>
                         </div>
                       </div>
+                    </div>
+                    {/* Star Rating */}
+                    <div className="mt-2 flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          onClick={() => rateRequest(request.id, request.dj_rating === star ? 0 : star)}
+                          className="p-0.5 transition-colors"
+                          title={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                        >
+                          <Star
+                            className={`h-5 w-5 ${
+                              star <= (request.dj_rating || 0)
+                                ? 'fill-yellow-400 text-yellow-400'
+                                : 'text-gray-600 hover:text-yellow-400/50'
+                            }`}
+                          />
+                        </button>
+                      ))}
                     </div>
                     {(request.status === 'queued' || request.status === 'pinned') && (
                     <div className="mt-3 flex gap-2">

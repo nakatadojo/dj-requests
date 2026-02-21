@@ -123,6 +123,12 @@ export const requestsAPI = {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
+
+  rate: (requestId, rating) =>
+    fetchWithAuth(`/requests/${requestId}/rating`, {
+      method: 'PATCH',
+      body: JSON.stringify({ rating }),
+    }),
 };
 
 // Blocklist API

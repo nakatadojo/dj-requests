@@ -278,4 +278,36 @@ router.patch('/:id', authenticateDJ, (req, res, next) => {
   }
 });
 
+/**
+ * PATCH /api/requests/:id/rating
+ * Rate a song request (DJ only, 1-5 stars)
+ */
+router.patch('/:id/rating', authenticateDJ, (req, res, next) => {
+  try {
+    const { rating } = req.body;
+
+    if (rating === undefined || rating < 0 || rating > 5) {
+      return res.status(400).json({ error: 'Rating must be between 0 and 5' });
+    }
+
+    const request = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
+
+    if (!request) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    // Verify DJ owns the event
+    const event = db.prepare('SELECT dj_id FROM events WHERE id = ?').get(request.event_id);
+    if (event.dj_id !== req.djId) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    db.prepare('UPDATE song_requests SET dj_rating = ? WHERE id = ?').run(rating, req.params.id);
+
+    res.json({ id: req.params.id, dj_rating: rating });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

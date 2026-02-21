@@ -40,6 +40,7 @@ const migrations = [
   'add_social_links.sql',
   'add_event_visibility.sql',
   'add_disclaimer.sql',
+  'add_dj_rating.sql',
 ];
 
 for (const migrationFile of migrations) {
