@@ -4,7 +4,7 @@ import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List, Star, Tv, Radio } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List, Star, Tv, XCircle, Radio } from 'lucide-react';
 
 export default function DJLiveView() {
   const { slug } = useParams();
@@ -162,6 +162,14 @@ export default function DJLiveView() {
     }
   };
 
+  const clearNowPlaying = async () => {
+    try {
+      await requestsAPI.clearNowPlaying(slug);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const endEvent = async () => {
     if (!confirm('Are you sure you want to end this event?')) return;
 
@@ -252,6 +260,14 @@ export default function DJLiveView() {
                 >
                   <Tv className="h-5 w-5" />
                   TV
+                </button>
+                <button
+                  onClick={clearNowPlaying}
+                  className="flex items-center gap-2 rounded-lg bg-gray-700 px-3 py-2 hover:bg-gray-600"
+                  title="Clear TV display (back to QR code)"
+                >
+                  <XCircle className="h-5 w-5" />
+                  Clear TV
                 </button>
                 <button
                   onClick={() => navigate(`/dj/event/${slug}/rankings`)}

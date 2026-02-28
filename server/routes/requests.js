@@ -2,7 +2,7 @@ import express from 'express';
 import db, { generateId, getTimestamp } from '../db/database.js';
 import { authenticateDJ } from '../middleware/auth.js';
 import { songMatches, matchesBlockPattern } from '../utils/fuzzyMatch.js';
-import { broadcastNewRequest, broadcastQueueUpdate, broadcastNowPlaying } from '../websocket.js';
+import { broadcastNewRequest, broadcastQueueUpdate, broadcastNowPlaying, broadcastNowPlayingClear } from '../websocket.js';
 import { getArtistGenres } from './spotify.js';
 
 const router = express.Router();
@@ -321,6 +321,26 @@ router.patch('/:id/rating', authenticateDJ, (req, res, next) => {
     db.prepare('UPDATE song_requests SET dj_rating = ? WHERE id = ?').run(rating, req.params.id);
 
     res.json({ id: req.params.id, dj_rating: rating });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/requests/now-playing/clear
+ * Clear the now playing display on TV (DJ only)
+ */
+router.post('/now-playing/clear', authenticateDJ, (req, res, next) => {
+  try {
+    const { slug } = req.body;
+    if (!slug) return res.status(400).json({ error: 'Event slug is required' });
+
+    const event = db.prepare('SELECT * FROM events WHERE slug = ?').get(slug);
+    if (!event) return res.status(404).json({ error: 'Event not found' });
+    if (event.dj_id !== req.djId) return res.status(403).json({ error: 'Not authorized' });
+
+    broadcastNowPlayingClear(slug);
+    res.json({ message: 'Now playing cleared' });
   } catch (error) {
     next(error);
   }

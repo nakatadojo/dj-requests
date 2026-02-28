@@ -134,6 +134,12 @@ export const requestsAPI = {
     fetchWithAuth(`/requests/${requestId}/now-playing`, {
       method: 'POST',
     }),
+
+  clearNowPlaying: (slug) =>
+    fetchWithAuth('/requests/now-playing/clear', {
+      method: 'POST',
+      body: JSON.stringify({ slug }),
+    }),
 };
 
 // Blocklist API

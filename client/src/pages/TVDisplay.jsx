@@ -27,6 +27,8 @@ export default function TVDisplay() {
   const handleWebSocketMessage = useCallback((data) => {
     if (data.type === 'now:playing') {
       setNowPlaying(data.song);
+    } else if (data.type === 'now:clear') {
+      setNowPlaying(null);
     }
   }, []);
 
@@ -75,69 +77,76 @@ export default function TVDisplay() {
       </button>
 
       <div className="flex min-h-screen items-center justify-center p-8">
-        <div className="flex w-full max-w-7xl items-center justify-between gap-16">
-          {/* Left Side - Event Info + Now Playing */}
-          <div className="flex-1 text-center">
-            {/* Event Banner */}
+        {nowPlaying ? (
+          /* Now Playing Layout - song info on left, QR smaller on right */
+          <div className="flex w-full max-w-7xl items-center justify-between gap-16">
+            <div className="flex-1 text-center">
+              <p className="mb-2 text-lg font-medium text-purple-400 uppercase tracking-widest">Now Playing</p>
+              <div className="mx-auto max-w-lg rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-600/20 border border-purple-500/30 p-8 shadow-2xl">
+                {nowPlaying.albumArt && (
+                  <img
+                    src={nowPlaying.albumArt}
+                    alt={nowPlaying.song_name}
+                    className="mx-auto mb-6 h-72 w-72 rounded-xl object-cover shadow-lg"
+                  />
+                )}
+                <h2 className="text-4xl font-bold">{nowPlaying.song_name}</h2>
+                <p className="mt-2 text-2xl text-gray-400">{nowPlaying.artist}</p>
+              </div>
+              <p className="mt-6 text-lg text-gray-600">{event.name}</p>
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+              <div className="rounded-2xl bg-white p-4 shadow-2xl">
+                <QRCodeSVG
+                  value={eventUrl}
+                  size={200}
+                  level="H"
+                  includeMargin={false}
+                />
+              </div>
+              <p className="text-center text-sm text-gray-500">
+                Scan to request a song
+              </p>
+            </div>
+          </div>
+        ) : (
+          /* Default Layout - QR code centered */
+          <div className="flex flex-col items-center gap-8">
             {event.cover_image_url ? (
               <img
                 src={event.cover_image_url}
                 alt={event.name}
-                className="mx-auto mb-8 max-h-64 rounded-2xl object-cover shadow-2xl"
+                className="max-h-48 rounded-2xl object-cover shadow-2xl"
               />
             ) : (
-              <div className="mx-auto mb-8 flex h-32 w-32 items-center justify-center rounded-full bg-purple-600/20">
-                <Music className="h-16 w-16 text-purple-500" />
+              <div className="flex h-28 w-28 items-center justify-center rounded-full bg-purple-600/20">
+                <Music className="h-14 w-14 text-purple-500" />
               </div>
             )}
 
-            <h1 className="mb-4 text-5xl font-bold">{event.name}</h1>
+            <h1 className="text-5xl font-bold">{event.name}</h1>
 
             {event.is_recurring && (
-              <div className="mb-8 inline-flex items-center gap-3 rounded-full bg-green-500/20 px-6 py-2 border border-green-500/30">
+              <div className="inline-flex items-center gap-3 rounded-full bg-green-500/20 px-6 py-2 border border-green-500/30">
                 <div className="h-3 w-3 rounded-full bg-green-500 animate-pulse"></div>
                 <span className="text-lg font-semibold text-green-400">Live Now</span>
               </div>
             )}
 
-            {/* Now Playing */}
-            {nowPlaying ? (
-              <div className="mt-8 animate-fade-in">
-                <p className="mb-4 text-lg font-medium text-purple-400 uppercase tracking-widest">Now Playing</p>
-                <div className="mx-auto max-w-md rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-600/20 border border-purple-500/30 p-8 shadow-2xl">
-                  {nowPlaying.albumArt && (
-                    <img
-                      src={nowPlaying.albumArt}
-                      alt={nowPlaying.song_name}
-                      className="mx-auto mb-6 h-64 w-64 rounded-xl object-cover shadow-lg"
-                    />
-                  )}
-                  <h2 className="text-3xl font-bold">{nowPlaying.song_name}</h2>
-                  <p className="mt-2 text-xl text-gray-400">{nowPlaying.artist}</p>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-8">
-                <p className="text-lg text-gray-600">Scan the QR code to request a song</p>
-              </div>
-            )}
-          </div>
-
-          {/* Right Side - QR Code */}
-          <div className="flex flex-col items-center gap-6">
-            <div className="rounded-2xl bg-white p-6 shadow-2xl">
+            <div className="rounded-2xl bg-white p-8 shadow-2xl">
               <QRCodeSVG
                 value={eventUrl}
-                size={280}
+                size={320}
                 level="H"
                 includeMargin={false}
               />
             </div>
-            <p className="text-center text-lg text-gray-400">
+            <p className="text-center text-xl text-gray-400">
               Scan to request a song
             </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

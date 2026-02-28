@@ -106,3 +106,13 @@ export function broadcastNowPlaying(eventSlug, songData) {
     timestamp: Date.now(),
   });
 }
+
+/**
+ * Clear now playing on TV display
+ */
+export function broadcastNowPlayingClear(eventSlug) {
+  broadcastToEvent(eventSlug, {
+    type: 'now:clear',
+    timestamp: Date.now(),
+  });
+}
