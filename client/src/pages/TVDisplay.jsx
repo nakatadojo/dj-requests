@@ -117,7 +117,8 @@ export default function TVDisplay() {
               <img
                 src={event.cover_image_url}
                 alt={event.name}
-                className="max-h-48 rounded-2xl object-cover shadow-2xl"
+                className="rounded-2xl object-cover shadow-2xl"
+                style={{ maxHeight: '40vh' }}
               />
             ) : (
               <div className="flex h-28 w-28 items-center justify-center rounded-full bg-purple-600/20">
