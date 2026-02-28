@@ -54,6 +54,7 @@ export default function SpotifySearch({ onSelectSong }) {
       artist: track.artist,
       albumArt: track.albumArt,
       spotifyUrl: track.spotifyUrl,
+      artist_ids: track.artistIds || [],
     });
     setQuery('');
     setResults([]);

@@ -41,6 +41,8 @@ const migrations = [
   'add_event_visibility.sql',
   'add_disclaimer.sql',
   'add_dj_rating.sql',
+  'add_blocked_genres.sql',
+  'add_album_art.sql',
 ];
 
 for (const migrationFile of migrations) {

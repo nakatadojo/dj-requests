@@ -13,6 +13,7 @@ import Analytics from './pages/Analytics';
 import BlockList from './pages/BlockList';
 import SongRankings from './pages/SongRankings';
 import EditEvent from './pages/EditEvent';
+import TVDisplay from './pages/TVDisplay';
 
 // Redirect logged-in users to dashboard, otherwise show landing page
 function AuthRedirect() {
@@ -100,6 +101,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <SongRankings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dj/event/:slug/tv"
+            element={
+              <ProtectedRoute>
+                <TVDisplay />
               </ProtectedRoute>
             }
           />

@@ -95,3 +95,14 @@ export function broadcastRequestPlayed(eventSlug, requestId) {
     timestamp: Date.now(),
   });
 }
+
+/**
+ * Broadcast now playing to event subscribers (for TV display)
+ */
+export function broadcastNowPlaying(eventSlug, songData) {
+  broadcastToEvent(eventSlug, {
+    type: 'now:playing',
+    song: songData,
+    timestamp: Date.now(),
+  });
+}

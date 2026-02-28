@@ -2,7 +2,8 @@ import express from 'express';
 import db, { generateId, getTimestamp } from '../db/database.js';
 import { authenticateDJ } from '../middleware/auth.js';
 import { songMatches, matchesBlockPattern } from '../utils/fuzzyMatch.js';
-import { broadcastNewRequest, broadcastQueueUpdate } from '../websocket.js';
+import { broadcastNewRequest, broadcastQueueUpdate, broadcastNowPlaying } from '../websocket.js';
+import { getArtistGenres } from './spotify.js';
 
 const router = express.Router();
 
@@ -64,9 +65,9 @@ router.get('/:slug/requests', (req, res, next) => {
  * POST /api/events/:slug/requests
  * Submit a song request (public - for attendees)
  */
-router.post('/:slug/requests', (req, res, next) => {
+router.post('/:slug/requests', async (req, res, next) => {
   try {
-    const { song_name, artist, requester_name } = req.body;
+    const { song_name, artist, requester_name, artist_ids, albumArt } = req.body;
     const clientIp = getClientIp(req);
 
     if (!song_name || !artist) {
@@ -115,6 +116,20 @@ router.post('/:slug/requests', (req, res, next) => {
       }
     }
 
+    // Check blocked genres
+    const blockedGenres = db.prepare('SELECT genre FROM blocked_genres WHERE dj_id = ?').all(dj.id);
+    if (blockedGenres.length > 0 && artist_ids && artist_ids.length > 0) {
+      const songGenres = await getArtistGenres(artist_ids);
+      for (const { genre } of blockedGenres) {
+        const blockedLower = genre.toLowerCase();
+        if (songGenres.some(g => g.includes(blockedLower))) {
+          return res.status(400).json({
+            error: `This genre isn't available for requests at this event.`
+          });
+        }
+      }
+    }
+
     // Check for duplicates in current queue
     const existingRequests = db.prepare(`
       SELECT * FROM song_requests
@@ -160,8 +175,8 @@ router.post('/:slug/requests', (req, res, next) => {
     // Create new request
     const id = generateId();
     db.prepare(`
-      INSERT INTO song_requests (id, event_id, song_name, artist, requester_name, upvotes, upvoter_sessions, requester_ip)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO song_requests (id, event_id, song_name, artist, requester_name, upvotes, upvoter_sessions, requester_ip, album_art)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       event.id,
@@ -170,7 +185,8 @@ router.post('/:slug/requests', (req, res, next) => {
       requester_name || 'Anonymous',
       1, // Start with 1 upvote (from requester)
       JSON.stringify([clientIp]), // Initialize with requester's IP
-      clientIp // Store requester IP for rate limiting
+      clientIp, // Store requester IP for rate limiting
+      albumArt || null // Store album art URL from Spotify
     );
 
     const newRequest = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(id);
@@ -305,6 +321,31 @@ router.patch('/:id/rating', authenticateDJ, (req, res, next) => {
     db.prepare('UPDATE song_requests SET dj_rating = ? WHERE id = ?').run(rating, req.params.id);
 
     res.json({ id: req.params.id, dj_rating: rating });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/requests/:id/now-playing
+ * Set a song as now playing on the TV display (DJ only)
+ */
+router.post('/:id/now-playing', authenticateDJ, (req, res, next) => {
+  try {
+    const request = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
+    if (!request) return res.status(404).json({ error: 'Request not found' });
+
+    const event = db.prepare('SELECT * FROM events WHERE id = ?').get(request.event_id);
+    if (event.dj_id !== req.djId) return res.status(403).json({ error: 'Not authorized' });
+
+    // Broadcast now playing to TV display
+    broadcastNowPlaying(event.slug, {
+      song_name: request.song_name,
+      artist: request.artist,
+      albumArt: request.album_art || null,
+    });
+
+    res.json({ message: 'Now playing updated' });
   } catch (error) {
     next(error);
   }

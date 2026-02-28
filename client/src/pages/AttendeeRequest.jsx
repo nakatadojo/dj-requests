@@ -26,6 +26,7 @@ export default function AttendeeRequest() {
     artist: '',
     requester_name: '',
     albumArt: null,
+    artist_ids: [],
   });
 
   const [selectedSong, setSelectedSong] = useState(null);
@@ -84,7 +85,7 @@ export default function AttendeeRequest() {
         // Show success modal
         setShowSuccessModal(true);
         setCanCloseModal(false);
-        setFormData({ song_name: '', artist: '', requester_name: '', albumArt: null });
+        setFormData({ song_name: '', artist: '', requester_name: '', albumArt: null, artist_ids: [] });
         setSelectedSong(null);
 
         // Enable close button after 5 seconds
@@ -245,6 +246,7 @@ export default function AttendeeRequest() {
                   song_name: song.song_name,
                   artist: song.artist,
                   albumArt: song.albumArt,
+                  artist_ids: song.artist_ids || [],
                 });
               }}
             />

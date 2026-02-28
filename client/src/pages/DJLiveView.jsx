@@ -4,7 +4,7 @@ import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List, Star } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List, Star, Tv, Radio } from 'lucide-react';
 
 export default function DJLiveView() {
   const { slug } = useParams();
@@ -154,6 +154,14 @@ export default function DJLiveView() {
     }
   };
 
+  const setNowPlaying = async (requestId) => {
+    try {
+      await requestsAPI.setNowPlaying(requestId);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const endEvent = async () => {
     if (!confirm('Are you sure you want to end this event?')) return;
 
@@ -238,6 +246,13 @@ export default function DJLiveView() {
                 >
                   {notificationPermission === 'granted' ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
                 </div>
+                <button
+                  onClick={() => window.open(`/dj/event/${slug}/tv`, '_blank')}
+                  className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 hover:bg-indigo-700"
+                >
+                  <Tv className="h-5 w-5" />
+                  TV
+                </button>
                 <button
                   onClick={() => navigate(`/dj/event/${slug}/rankings`)}
                   className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 hover:bg-purple-700"
@@ -367,11 +382,14 @@ export default function DJLiveView() {
                         {request.status === 'pinned' ? 'Pinned' : 'Pin'}
                       </button>
                       <button
-                        onClick={() => updateRequestStatus(request.id, 'played')}
+                        onClick={() => {
+                          setNowPlaying(request.id);
+                          updateRequestStatus(request.id, 'played');
+                        }}
                         className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1 text-sm hover:bg-green-700"
                       >
-                        <PlayCircle className="h-4 w-4" />
-                        Played
+                        <Radio className="h-4 w-4" />
+                        Playing
                       </button>
                       <button
                         onClick={() => updateRequestStatus(request.id, 'skipped')}

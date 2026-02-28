@@ -129,6 +129,11 @@ export const requestsAPI = {
       method: 'PATCH',
       body: JSON.stringify({ rating }),
     }),
+
+  setNowPlaying: (requestId) =>
+    fetchWithAuth(`/requests/${requestId}/now-playing`, {
+      method: 'POST',
+    }),
 };
 
 // Blocklist API
@@ -143,6 +148,19 @@ export const blocklistAPI = {
 
   remove: (id) =>
     fetchWithAuth(`/blocklist/${id}`, {
+      method: 'DELETE',
+    }),
+
+  getGenres: () => fetchWithAuth('/blocklist/genres'),
+
+  addGenre: (genre) =>
+    fetchWithAuth('/blocklist/genres', {
+      method: 'POST',
+      body: JSON.stringify({ genre }),
+    }),
+
+  removeGenre: (id) =>
+    fetchWithAuth(`/blocklist/genres/${id}`, {
       method: 'DELETE',
     }),
 };

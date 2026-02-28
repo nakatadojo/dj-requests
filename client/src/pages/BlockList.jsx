@@ -2,18 +2,21 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { blocklistAPI } from '../utils/api';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { ArrowLeft, Plus, Trash2, Ban } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Ban, Music } from 'lucide-react';
 
 export default function BlockList() {
   const [blockedSongs, setBlockedSongs] = useState([]);
+  const [blockedGenres, setBlockedGenres] = useState([]);
   const [loading, setLoading] = useState(true);
   const [newPattern, setNewPattern] = useState('');
+  const [newGenre, setNewGenre] = useState('');
   const [error, setError] = useState('');
 
   const navigate = useNavigate();
 
   useEffect(() => {
     loadBlockList();
+    loadBlockedGenres();
   }, []);
 
   const loadBlockList = async () => {
@@ -24,6 +27,15 @@ export default function BlockList() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadBlockedGenres = async () => {
+    try {
+      const data = await blocklistAPI.getGenres();
+      setBlockedGenres(data);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -48,6 +60,30 @@ export default function BlockList() {
     try {
       await blocklistAPI.remove(id);
       loadBlockList();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleAddGenre = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!newGenre.trim()) return;
+
+    try {
+      await blocklistAPI.addGenre(newGenre);
+      setNewGenre('');
+      loadBlockedGenres();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleRemoveGenre = async (id) => {
+    if (!confirm('Remove this genre from block list?')) return;
+    try {
+      await blocklistAPI.removeGenre(id);
+      loadBlockedGenres();
     } catch (err) {
       setError(err.message);
     }
@@ -139,6 +175,73 @@ export default function BlockList() {
                   </div>
                   <button
                     onClick={() => handleRemove(item.id)}
+                    className="rounded-lg bg-red-600 p-2 transition-colors hover:bg-red-700"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Blocked Genres Section */}
+        <form onSubmit={handleAddGenre} className="mt-6 mb-6 rounded-lg bg-gray-800 p-6">
+          <h2 className="mb-4 text-lg font-semibold">Block Genres</h2>
+
+          <div className="mb-4">
+            <label htmlFor="genre" className="mb-2 block text-sm font-medium">
+              Genre Name
+            </label>
+            <input
+              type="text"
+              id="genre"
+              value={newGenre}
+              onChange={(e) => setNewGenre(e.target.value)}
+              className="w-full rounded-lg bg-gray-700 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-venmo"
+              placeholder='e.g., "country", "metal", "reggaeton"'
+            />
+            <p className="mt-2 text-xs text-gray-400">
+              Blocks any song by artists tagged with this genre on Spotify
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-600 px-6 py-3 font-semibold text-white hover:bg-purple-700 active:scale-95"
+          >
+            <Plus className="h-5 w-5" />
+            Block Genre
+          </button>
+        </form>
+
+        <div className="rounded-lg bg-gray-800 p-6">
+          <h2 className="mb-4 text-lg font-semibold">Blocked Genres</h2>
+
+          {blockedGenres.length === 0 ? (
+            <div className="py-8 text-center">
+              <Music className="mx-auto mb-4 h-12 w-12 text-gray-600" />
+              <p className="text-gray-400">No blocked genres yet</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {blockedGenres.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between rounded-lg bg-gray-700 p-4"
+                >
+                  <div>
+                    <div className="font-medium capitalize">{item.genre}</div>
+                    <div className="text-xs text-gray-400">
+                      Added{' '}
+                      {new Date(item.created_at * 1000).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveGenre(item.id)}
                     className="rounded-lg bg-red-600 p-2 transition-colors hover:bg-red-700"
                   >
                     <Trash2 className="h-5 w-5" />

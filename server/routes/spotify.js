@@ -75,6 +75,7 @@ router.get('/search', async (req, res, next) => {
       id: track.id,
       name: track.name,
       artist: track.artists.map(a => a.name).join(', '),
+      artistIds: track.artists.map(a => a.id),
       album: track.album.name,
       albumArt: track.album.images[0]?.url || null,
       previewUrl: track.preview_url,
@@ -90,5 +91,33 @@ router.get('/search', async (req, res, next) => {
     next(error);
   }
 });
+
+/**
+ * Fetch genres for given artist IDs from Spotify API
+ */
+export async function getArtistGenres(artistIds) {
+  if (!artistIds || artistIds.length === 0) return [];
+
+  try {
+    const token = await getSpotifyToken();
+    const ids = artistIds.slice(0, 50).join(','); // Spotify max 50
+
+    const response = await axios.get('https://api.spotify.com/v1/artists', {
+      params: { ids },
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+
+    const genres = new Set();
+    for (const artist of response.data.artists) {
+      if (artist && artist.genres) {
+        artist.genres.forEach(g => genres.add(g.toLowerCase()));
+      }
+    }
+    return [...genres];
+  } catch (error) {
+    console.error('Failed to fetch artist genres:', error.message);
+    return [];
+  }
+}
 
 export default router;
