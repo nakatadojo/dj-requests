@@ -327,6 +327,40 @@ router.patch('/:id/rating', authenticateDJ, (req, res, next) => {
 });
 
 /**
+ * PATCH /api/requests/:id/comment
+ * Add or update a DJ comment on a request (DJ only)
+ */
+router.patch('/:id/comment', authenticateDJ, (req, res, next) => {
+  try {
+    const { comment } = req.body;
+
+    const request = db.prepare('SELECT * FROM song_requests WHERE id = ?').get(req.params.id);
+
+    if (!request) {
+      return res.status(404).json({ error: 'Request not found' });
+    }
+
+    // Verify DJ owns the event
+    const event = db.prepare('SELECT dj_id, slug FROM events WHERE id = ?').get(request.event_id);
+    if (event.dj_id !== req.djId) {
+      return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    db.prepare('UPDATE song_requests SET dj_comment = ? WHERE id = ?').run(
+      comment?.trim() || null,
+      req.params.id
+    );
+
+    // Broadcast queue update so attendees see the comment
+    broadcastQueueUpdate(event.slug);
+
+    res.json({ id: req.params.id, dj_comment: comment?.trim() || null });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
  * POST /api/requests/now-playing/clear
  * Clear the now playing display on TV (DJ only)
  */

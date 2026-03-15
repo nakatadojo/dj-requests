@@ -4,7 +4,7 @@ import { eventsAPI, requestsAPI } from '../utils/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import LoadingSpinner from '../components/LoadingSpinner';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List, Star, Tv, XCircle, Radio } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff, Search, PlayCircle, SkipForward, Pin, Ban, TrendingUp, Settings, Bell, BellOff, History, List, Star, Tv, XCircle, Radio, MessageSquare, Check } from 'lucide-react';
 
 export default function DJLiveView() {
   const { slug } = useParams();
@@ -17,6 +17,8 @@ export default function DJLiveView() {
   const [notificationPermission, setNotificationPermission] = useState('default');
   const [activeTab, setActiveTab] = useState('queue');
   const [allRequests, setAllRequests] = useState([]);
+  const [editingComment, setEditingComment] = useState(null); // requestId being edited
+  const [commentDraft, setCommentDraft] = useState('');
 
   const loadEvent = async () => {
     try {
@@ -165,6 +167,18 @@ export default function DJLiveView() {
   const clearNowPlaying = async () => {
     try {
       await requestsAPI.clearNowPlaying(slug);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const saveComment = async (requestId) => {
+    try {
+      await requestsAPI.comment(requestId, commentDraft);
+      const update = (list) => list.map(r => r.id === requestId ? { ...r, dj_comment: commentDraft.trim() || null } : r);
+      setRequests(update);
+      setAllRequests(update);
+      setEditingComment(null);
     } catch (err) {
       console.error(err);
     }
@@ -386,6 +400,53 @@ export default function DJLiveView() {
                           />
                         </button>
                       ))}
+                    </div>
+                    {/* DJ Comment */}
+                    <div className="mt-2">
+                      {editingComment === request.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            autoFocus
+                            type="text"
+                            value={commentDraft}
+                            onChange={(e) => setCommentDraft(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveComment(request.id);
+                              if (e.key === 'Escape') setEditingComment(null);
+                            }}
+                            placeholder="Add a note for the requester..."
+                            className="flex-1 rounded bg-gray-700 px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          />
+                          <button
+                            onClick={() => saveComment(request.id)}
+                            className="rounded bg-purple-600 p-1.5 hover:bg-purple-700"
+                            title="Save comment"
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => setEditingComment(null)}
+                            className="rounded bg-gray-700 p-1.5 hover:bg-gray-600 text-gray-400"
+                            title="Cancel"
+                          >
+                            <XCircle className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingComment(request.id);
+                            setCommentDraft(request.dj_comment || '');
+                          }}
+                          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-purple-400 transition-colors"
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          {request.dj_comment
+                            ? <span className="text-purple-400">{request.dj_comment}</span>
+                            : <span>Add note</span>
+                          }
+                        </button>
+                      )}
                     </div>
                     {(request.status === 'queued' || request.status === 'pinned') && (
                     <div className="mt-3 flex gap-2">

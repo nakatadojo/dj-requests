@@ -140,6 +140,12 @@ export const requestsAPI = {
       method: 'POST',
       body: JSON.stringify({ slug }),
     }),
+
+  comment: (requestId, comment) =>
+    fetchWithAuth(`/requests/${requestId}/comment`, {
+      method: 'PATCH',
+      body: JSON.stringify({ comment }),
+    }),
 };
 
 // Blocklist API

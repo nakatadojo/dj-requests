@@ -7,7 +7,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import SocialLinks from '../components/SocialLinks';
 import VenmoButton from '../components/VenmoButton';
 import SpotifySearch from '../components/SpotifySearch';
-import { Music, ThumbsUp, Clock, X, CheckCircle, Music2 } from 'lucide-react';
+import { Music, ThumbsUp, Clock, X, CheckCircle, Music2, MessageSquare } from 'lucide-react';
 
 export default function AttendeeRequest() {
   const { slug } = useParams();
@@ -323,6 +323,12 @@ export default function AttendeeRequest() {
                             minute: '2-digit',
                           })}
                         </p>
+                        {request.dj_comment && (
+                          <div className="mt-2 flex items-start gap-1.5 rounded-md bg-purple-900/30 border border-purple-700/30 px-3 py-2">
+                            <MessageSquare className="mt-0.5 h-3.5 w-3.5 shrink-0 text-purple-400" />
+                            <p className="text-xs text-purple-300">{request.dj_comment}</p>
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={() => handleUpvote(request.id)}
