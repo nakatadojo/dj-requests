@@ -30,5 +30,5 @@ export function authenticateDJ(req, res, next) {
  * Generate JWT token for DJ
  */
 export function generateToken(djId) {
-  return jwt.sign({ djId }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ djId }, JWT_SECRET, { expiresIn: '30d' });
 }

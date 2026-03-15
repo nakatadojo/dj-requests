@@ -23,6 +23,11 @@ async function fetchWithAuth(url, options = {}) {
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('dj_token');
+      window.location.href = '/login';
+      return;
+    }
     const error = await response.json().catch(() => ({ error: 'Request failed' }));
     throw new Error(error.error || 'Request failed');
   }
