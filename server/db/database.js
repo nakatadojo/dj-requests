@@ -43,6 +43,7 @@ const migrations = [
   'add_dj_rating.sql',
   'add_blocked_genres.sql',
   'add_album_art.sql',
+  'add_dj_comment.sql',
 ];
 
 for (const migrationFile of migrations) {
